@@ -1,0 +1,15 @@
+.terraform
+*.tfstate
+*.tfstate*
+*.tfvars
+**/_build/
+**/build/
+**/builds/
+**/*.plan
+
+**/node_modules
+
+.DS_Store
+**/*/.DS_Store
+
+*.zip

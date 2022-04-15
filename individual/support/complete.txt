@@ -1,0 +1,7 @@
+
+Environment creation complete. You should now import this instance into the appropriate Terraform workspace and apply the changes to build the rest of the infrastructure:
+
+$ terraform init
+$ terraform workspace select {netId} || terraform workspace new {netId}
+$ terraform import -var user_net_id={netId} aws_instance.cloud9_ide_instance {instanceId}
+$ terraform apply -var user_net_id={netId}

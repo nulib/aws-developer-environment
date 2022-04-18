@@ -1,5 +1,6 @@
 module "aurora_postgresql" {
   source  = "terraform-aws-modules/rds-aurora/aws"
+  version = "~> 6.2.0"
 
   name                  = "${local.name}-db-cluster"
   engine                = "aurora-postgresql"

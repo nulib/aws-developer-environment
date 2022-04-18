@@ -74,12 +74,12 @@ data "aws_iam_policy_document" "owner_full_access" {
     sid       = "OwnerFullAccess"
     effect    = "Allow"
     actions   = ["*"]
-    resources = ["*"]
-    condition {
-      test        = "StringEquals"
-      variable    = "aws:ResourceTag/owner"
-      values      = [var.user_net_id]
-    }
+    resources = flatten([
+      aws_media_convert_queue.transcode_queue.arn,
+      [for bucket in values(aws_s3_bucket.meadow_buckets)[*]: [bucket.arn, "${bucket.arn}/*"]],
+      [for topic  in values(aws_sns_topic.sequins_topics)[*]: topic.arn],
+      [for queue  in values(aws_sqs_queue.sequins_queues)[*]: queue.arn]
+    ])
   }
 }
 

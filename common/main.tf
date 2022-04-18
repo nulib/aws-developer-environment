@@ -13,6 +13,9 @@ terraform {
 
 provider aws {}
 
+data "aws_caller_identity" "current_user" {}
+data "aws_region" "current" {}
+
 locals {
   name = "dev-environment"
 

@@ -20,20 +20,3 @@ module "aurora_postgresql" {
   }
 }
 
-resource "aws_ssm_parameter" "db_user" {
-  name    = "/dev-environment/db/user"
-  type    = "String"
-  value   = module.aurora_postgresql.cluster_master_username
-}
-
-resource "aws_ssm_parameter" "db_password" {
-  name    = "/dev-environment/db/password"
-  type    = "String"
-  value   = module.aurora_postgresql.cluster_master_password
-}
-
-resource "aws_ssm_parameter" "db_host" {
-  name    = "/dev-environment/db/host"
-  type    = "String"
-  value   = module.aurora_postgresql.cluster_endpoint
-}

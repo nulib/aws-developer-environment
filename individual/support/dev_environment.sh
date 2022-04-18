@@ -5,7 +5,9 @@ next_page() {
   fi
   params=$($(echo $cmd))
   vars=$(jq -r '.Parameters[] | (.Name | sub("^/dev-environment/"; "") | gsub("[/-]"; "_") | ascii_upcase) as $name | "DEV_\($name)=\(.Value)"' <<< $params)
-  export eval $vars
+  while read -r setting; do
+    export eval $setting
+  done <<< $vars
   next_token=$(jq '.NextToken' <<< $params)
 }
 

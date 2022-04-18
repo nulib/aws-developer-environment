@@ -1,8 +1,8 @@
 #!/bin/bash
 
 # Clone Meadow
-git clone git@github.com:nulib/meadow.git
-cd meadow
+git clone git@github.com:nulib/meadow.git ~/environment/meadow
+cd ~/environment/meadow
 
 # Install tool dependencies
 asdf-install-plugins

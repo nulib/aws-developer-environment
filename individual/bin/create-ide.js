@@ -9,7 +9,7 @@ const templatePath = (filename) =>
   path.join(__dirname, "..", "support", filename);
 
 async function createIde(context) {
-  const { netId, email, instanceType, diskSize, autoShutdown } = context;
+  const { netId, email, instanceType, diskSize, shutdownMinutes } = context;
   const ora = (await import("ora")).default;
   let spinner;
 
@@ -23,7 +23,7 @@ async function createIde(context) {
       instanceType,
       netId,
       context.subnetId,
-      autoShutdown
+      shutdownMinutes
     );
     spinner.succeed();
 

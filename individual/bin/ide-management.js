@@ -27,7 +27,7 @@ const createEnvironment = async (
   instanceType,
   netId,
   subnetId,
-  autoShutdown
+  shutdownMinutes
 ) => {
   const cloud9 = new AWS.Cloud9();
   const { environmentId } = await cloud9
@@ -38,7 +38,7 @@ const createEnvironment = async (
       imageId: "amazonlinux-2-x86_64",
       subnetId: subnetId,
       connectionType: "CONNECT_SSM",
-      automaticStopTimeMinutes: autoShutdown,
+      automaticStopTimeMinutes: shutdownMinutes,
       tags: [
         {
           Key: "project",

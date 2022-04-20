@@ -14,7 +14,8 @@ terraform {
 provider aws {}
 
 locals {
-  backend_config = jsondecode(file("${path.module}/../common/.terraform/terraform.tfstate")).backend.config
+  backend_config    = jsondecode(file("${path.module}/../common/.terraform/terraform.tfstate")).backend.config
+  envs              = ["dev", "test"]
 }
 
 data "terraform_remote_state" "common" {

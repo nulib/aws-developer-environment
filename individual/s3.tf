@@ -1,16 +1,18 @@
 locals {
-  buckets = ["ingest", "uploads", "preservation", "preservation-checks", 
-            "pyramids", "streaming" ]
+  buckets                 = ["ingest", "uploads", "preservation", "preservation-checks", "pyramids", "streaming" ]
+  env_buckets             = [for entry in setproduct(local.envs, local.buckets): join("-", entry)]
+  notification_buckets    = [for entry in setproduct(local.envs, ["ingest", "uploads"]): join("-", entry)]
 }
 
 resource "aws_s3_bucket" "meadow_buckets" {
-  for_each = toset(local.buckets)
+  for_each = toset(local.env_buckets)
   bucket   = "${local.prefix}-${each.key}"
   tags     = local.tags
 }
 
 resource "aws_s3_bucket_cors_configuration" "meadow_uploads" {
-  bucket = aws_s3_bucket.meadow_buckets["uploads"].id
+  for_each    = toset(local.envs)
+  bucket      = aws_s3_bucket.meadow_buckets[join("-", [each.key, "uploads"])].id
   cors_rule {
     allowed_headers = ["*"]
     allowed_methods = ["PUT"]
@@ -21,7 +23,8 @@ resource "aws_s3_bucket_cors_configuration" "meadow_uploads" {
 }
 
 resource "aws_s3_bucket_cors_configuration" "meadow_streaming" {
-  bucket = aws_s3_bucket.meadow_buckets["streaming"].id
+  for_each    = toset(local.envs)
+  bucket      = aws_s3_bucket.meadow_buckets[join("-", [each.key, "streaming"])].id
 
   cors_rule {
     allowed_headers = ["Authorization", "Access-Control-Allow-Origin", "Range", "*"]
@@ -33,7 +36,8 @@ resource "aws_s3_bucket_cors_configuration" "meadow_streaming" {
 }
 
 resource "aws_s3_bucket_lifecycle_configuration" "meadow_streaming" {
-  bucket = aws_s3_bucket.meadow_buckets["streaming"].id
+  for_each    = toset(local.envs)
+  bucket      = aws_s3_bucket.meadow_buckets[join("-", [each.key, "streaming"])].id
 
   rule {
     id = "intelligent_tiering"
@@ -60,7 +64,7 @@ resource "aws_iam_policy_attachment" "fixity_bucket_access" {
 resource "aws_s3_bucket_notification" "bucket_notification" {
   depends_on  = [aws_lambda_permission.allow_invoke_from_bucket]
 
-  for_each    = toset(["ingest", "uploads"])
+  for_each    = toset(local.notification_buckets)
   bucket      = aws_s3_bucket.meadow_buckets[each.key].id
   lambda_function {
     lambda_function_arn = data.terraform_remote_state.common.outputs.fixity_function.function_arn
@@ -69,8 +73,8 @@ resource "aws_s3_bucket_notification" "bucket_notification" {
 }
 
 resource "aws_lambda_permission" "allow_invoke_from_bucket" {
-  for_each        = toset(["ingest", "uploads"])
-  statement_id    = "AllowExecutionFrom${title(each.key)}Bucket"
+  for_each        = toset(local.notification_buckets)
+  statement_id    = "AllowExecutionFrom${replace(title(each.key), "-", "")}Bucket"
   action          = "lambda:InvokeFunction"
   function_name   = data.terraform_remote_state.common.outputs.fixity_function.function_name
   principal       = "s3.amazonaws.com"

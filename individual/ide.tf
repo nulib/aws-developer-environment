@@ -94,6 +94,11 @@ resource "aws_iam_role_policy_attachment" "read_only_access" {
   policy_arn    = "arn:aws:iam::aws:policy/ReadOnlyAccess"
 }
 
+resource "aws_iam_role_policy_attachment" "service_discovery" {
+  role          = aws_iam_role.ide_instance_role.name
+  policy_arn    = "arn:aws:iam::aws:policy/AWSCloudMapDiscoverInstanceAccess"
+}
+
 resource "aws_iam_role_policy_attachment" "owner_full_access" {
   role          = aws_iam_role.ide_instance_role.name
   policy_arn    = aws_iam_policy.owner_full_access.arn

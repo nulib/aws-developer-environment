@@ -17,13 +17,22 @@ locals {
     "file-set-complete"         = [],
   }
 
+  # Duplicate each action in the actions map for each environment (dev/test)
+  env_actions = zipmap(
+    [for action in setproduct(local.envs, keys(local.actions)): join("-", action)],
+    [
+      for env_targets in setproduct(local.envs, values(local.actions)): 
+        flatten([for target in env_targets[1]: join("-", [env_targets[0], target])])
+    ]
+  )
+
   # Turn topic => [queues...] map into a topic.queue => { topic: topic, queue: queue }
   # map for easier iteration with for_each
   action_map = {
     for entry in
     distinct(flatten([
-      for topic in keys(local.actions) : [
-        for queue in local.actions[topic] : {
+      for topic in keys(local.env_actions) : [
+        for queue in local.env_actions[topic] : {
           topic = topic
           queue = queue
         }
@@ -33,7 +42,7 @@ locals {
 }
 
 resource "aws_sns_topic_subscription" "ingest_pipeline_retry" {
-  for_each  = local.actions
+  for_each  = local.env_actions
   protocol  = "sqs"
   topic_arn = aws_sns_topic.sequins_topics[each.key].arn
   endpoint  = aws_sqs_queue.sequins_queues[each.key].arn
@@ -55,7 +64,7 @@ resource "aws_sns_topic_subscription" "ingest_pipeline_ok" {
 }
 
 resource "aws_sqs_queue" "sequins_queues" {
-  for_each = toset(keys(local.actions))
+  for_each = toset(keys(local.env_actions))
   name     = "${local.prefix}-${each.key}"
   tags     = local.tags
 
@@ -91,7 +100,7 @@ resource "aws_sqs_queue" "sequins_queues" {
 }
 
 resource "aws_sns_topic" "sequins_topics" {
-  for_each = toset(keys(local.actions))
+  for_each = toset(keys(local.env_actions))
   name     = "${local.prefix}-${each.key}"
   tags     = local.tags
 }
@@ -121,5 +130,5 @@ resource "aws_cloudwatch_event_rule" "mediaconvert_state_change" {
 resource "aws_cloudwatch_event_target" "mediaconvert_state_change_sqs" {
   rule      = aws_cloudwatch_event_rule.mediaconvert_state_change.name
   target_id = "SendToTranscodeCompleteQueue"
-  arn       = aws_sqs_queue.sequins_queues["transcode-complete"].arn
+  arn       = aws_sqs_queue.sequins_queues["dev-transcode-complete"].arn
 }

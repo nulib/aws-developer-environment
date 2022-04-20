@@ -39,3 +39,45 @@ resource "aws_ssm_parameter" "index_kibana_endpoint" {
   value   = "https://${aws_elasticsearch_domain.elasticsearch.kibana_endpoint}"
   tags    = local.tags
 }
+
+resource "aws_ssm_parameter" "ldap_host" {
+  name    = "/${local.name}/ldap/host"
+  type    = "String"
+  value   = join(".", [aws_service_discovery_service.ldap.name, aws_service_discovery_private_dns_namespace.internal.name])
+  tags    = local.tags
+}
+
+resource "aws_ssm_parameter" "ldap_base" {
+  name    = "/${local.name}/ldap/base"
+  type    = "String"
+  value   = "DC=library,DC=northwestern,DC=edu"
+  tags    = local.tags
+}
+
+resource "aws_ssm_parameter" "ldap_port" {
+  name    = "/${local.name}/ldap/port"
+  type    = "String"
+  value   = "389"
+  tags    = local.tags
+}
+
+resource "aws_ssm_parameter" "ldap_user_dn" {
+  name    = "/${local.name}/ldap/user_dn"
+  type    = "SecureString"
+  value   = "cn=Administrator,cn=Users,dc=library,dc=northwestern,dc=edu"
+  tags    = local.tags
+}
+
+resource "aws_ssm_parameter" "ldap_password" {
+  name    = "/${local.name}/ldap/password"
+  type    = "SecureString"
+  value   = "d0ck3rAdm1n!"
+  tags    = local.tags
+}
+
+resource "aws_ssm_parameter" "ldap_ssl" {
+  name    = "/${local.name}/ldap/ssl"
+  type    = "String"
+  value   = "false"
+  tags    = local.tags
+}

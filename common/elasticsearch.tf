@@ -5,18 +5,42 @@ locals {
 
 data "aws_iam_policy_document" "elasticsearch_http_access" {
   statement {
-    sid       = "allow-from-aws"
+    sid       = "allow-from-vpc"
     effect    = "Allow"
     actions   = ["es:*"]
     principals {
       type        = "AWS"
-      identifiers = ["arn:aws:iam::${data.aws_caller_identity.current_user.account_id}:root"]
+      identifiers = ["*"]
     }
-
+    
     # Can't simply use "${aws_elasticsearch_domain.elasticsearch.arn}/*" here because
     # it creates a circular reference with that resource.
     resources = [local.elasticsearch_arn]
   }
+}
+
+resource "aws_security_group" "index" {
+  name        = "${local.name}-index"
+  description = "Elasticsearch/OpenSearch Server"
+  vpc_id      = module.vpc.vpc_id
+
+ ingress {
+    description      = "HTTPS from VPC"
+    from_port        = 443
+    to_port          = 443
+    protocol         = "tcp"
+    cidr_blocks      = [module.vpc.vpc_cidr_block]
+  }
+
+  egress {
+    from_port        = 0
+    to_port          = 0
+    protocol         = "-1"
+    cidr_blocks      = ["0.0.0.0/0"]
+    ipv6_cidr_blocks = ["::/0"]
+  }
+
+  tags = local.tags
 }
 
 resource "aws_elasticsearch_domain" "elasticsearch" {
@@ -34,6 +58,12 @@ resource "aws_elasticsearch_domain" "elasticsearch" {
     ebs_enabled = "true"
     volume_size = 10
   }
+
+  vpc_options {
+    security_group_ids    = [aws_security_group.index.id]
+    subnet_ids            = [module.vpc.private_subnets[0]]
+  }
+
   access_policies = data.aws_iam_policy_document.elasticsearch_http_access.json
   lifecycle {
     ignore_changes = [ebs_options]

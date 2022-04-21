@@ -16,6 +16,37 @@ resource "aws_iam_role" "ide_instance_role" {
   })
 }
 
+data "aws_iam_policy_document" "developer_access" {
+  statement {
+    sid       = "DeveloperAccess"
+    effect    = "Allow"
+    actions   = ["*"]
+    resources = ["*"]
+    condition {
+      test        = "StringEquals"
+      variable    = "aws:ResourceTag/project"
+      values      = [local.project]
+    }
+
+    condition {
+      test        = "StringEquals"
+      variable    = "aws:ResourceTag/owner"
+      values      = [local.owner]
+    }
+  }
+}
+
+resource "aws_iam_policy" "developer_access" {
+  name    = "${local.prefix}-developer-access"
+  policy  = data.aws_iam_policy_document.developer_access.json
+  tags    = local.tags
+}
+
+resource "aws_iam_role_policy_attachment" "developer_access" {
+  role          = aws_iam_role.ide_instance_role.name
+  policy_arn    = aws_iam_policy.developer_access.arn
+}
+
 resource "aws_iam_role_policy_attachment" "read_only_access" {
   role          = aws_iam_role.ide_instance_role.name
   policy_arn    = "arn:aws:iam::aws:policy/ReadOnlyAccess"

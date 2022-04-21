@@ -51,11 +51,43 @@ resource "aws_s3_bucket_lifecycle_configuration" "meadow_streaming" {
   }
 }
 
+data "aws_iam_policy_document" "fixity_bucket_access" {
+  statement {
+    sid       = "FixityFunctionAccess"
+    effect    = "Allow"
+    actions   = [
+      "s3:Get*",
+      "s3:List*",
+      "s3:DeleteObjectTagging",
+      "s3:PutObjectTagging"
+    ]
+    resources = flatten([
+      for bucket in ["ingest", "uploads"]: [aws_s3_bucket.meadow_buckets[bucket].arn, "${aws_s3_bucket.meadow_buckets[bucket].arn}/*"]
+    ])
+    condition {
+      test        = "StringEquals"
+      variable    = "aws:ResourceTag/project"
+      values      = [local.project]
+    }
+
+    condition {
+      test        = "StringEquals"
+      variable    = "aws:ResourceTag/owner"
+      values      = [local.owner]
+    }
+  }
+}
+
+resource "aws_iam_policy" "fixity_bucket_access" {
+  name    = "${local.prefix}-fixity-function-access"
+  policy  = data.aws_iam_policy_document.fixity_bucket_access.json
+}
 
 resource "aws_iam_role_policy_attachment" "fixity_bucket_access" {
   role          = local.common_config.fixity_function_role_name
-  policy_arn    = aws_iam_policy.owner_full_access.arn
+  policy_arn    = aws_iam_policy.fixity_bucket_access.arn
 }
+
 resource "aws_s3_bucket_notification" "bucket_notification" {
   depends_on  = [aws_lambda_permission.allow_invoke_from_bucket]
 

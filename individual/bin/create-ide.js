@@ -9,7 +9,7 @@ const templatePath = (filename) =>
   path.join(__dirname, "..", "support", filename);
 
 async function createIde(context) {
-  const { netId, email, instanceType, diskSize, shutdownMinutes } = context;
+  const { netId, email, instanceProfile, instanceType, diskSize, shutdownMinutes } = context;
   const ora = (await import("ora")).default;
   let spinner;
 
@@ -37,6 +37,10 @@ async function createIde(context) {
 
     spinner = ora(`Waiting for EC2 instance to initialize`).start();
     await ide.waitForInstanceStatus(context.instanceId, ["ok"]);
+    spinner.succeed();
+
+    spinner = ora(`Assigning instance profile to ${netId}-dev-environment`).start();
+    await ide.assignInstanceProfile(context.instanceId, instanceProfile);
     spinner.succeed();
 
     if (diskSize) {

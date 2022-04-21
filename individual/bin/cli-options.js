@@ -13,6 +13,7 @@ const optionDefinitions = [
     type: Number,
     required: true,
     defaultValue: 50,
+    minValue: 8,
     description: "EBS block storage to allocate (minimum: 8)",
   },
   {
@@ -44,11 +45,18 @@ const optionDefinitions = [
     description: "GitHub repository to pull init scripts from",
   },
   {
+    name: "instance-profile",
+    alias: "p",
+    type: String,
+    required: true,
+    description: "IAM instance profile ARN to assign to the IDE",
+  },
+  {
     name: "instance-type",
     alias: "t",
     type: String,
     required: true,
-    defaultValue: "t3.large",
+    defaultValue: "m5.large",
     description: "EC2 instance type",
   },
   {
@@ -64,6 +72,7 @@ const optionDefinitions = [
     type: Number,
     required: true,
     defaultValue: 30,
+    minValue: 5,
     description: "Number of minutes before environment hibernates (minimum: 5)",
   },
   {
@@ -92,20 +101,30 @@ const camelize = (arg) => {
 
 const context = camelize(commandLineArgs(optionDefinitions));
 
-if (process.env.SHOW_AND_QUIT) {
-  console.log(context);
-  process.exit(0);
+function validateOpts(opts) {
+  const valid = {};
+  for (const opt of optionDefinitions) {
+    const propName = camelize(opt.name);
+    const value = opts[propName];
+
+    valid[propName] =
+      (opt.required ? value !== undefined : true) &&
+      (typeof opt.minValue === "number" ? value > opt.minValue : true);
+  }
+
+  for (const prop in valid) {
+    if (!valid[prop]) {
+      console.warn(prop, "is invalid");
+      return false;
+    }
+  }
+  return true;
 }
 
-function validateOpts(opts) {
-  const required = optionDefinitions
-    .filter((opt) => opt.required)
-    .map((opt) => camelize(opt.name));
-
-  if (required.find((v) => opts[v] === undefined)) return false;
-  if (isNaN(opts.diskSize) || opts.diskSize < 8) return false;
-  if (isNaN(opts.shutdownMinutes) || opts.shutdownMinutes < 5) return false;
-  return true;
+if (process.env.SHOW_AND_QUIT) {
+  console.log("valid:", validateOpts(context));
+  console.log(context);
+  process.exit(0);
 }
 
 if (context.help || !validateOpts(context)) {

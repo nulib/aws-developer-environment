@@ -150,6 +150,25 @@ const waitForInstanceStatus = (instanceId, statuses, waitCallback) => {
   });
 };
 
+const assignInstanceProfile = async (instanceId, instanceProfileArn) => {
+  const ec2 = new AWS.EC2();
+
+  const response = await ec2.describeIamInstanceProfileAssociations({
+    Filters: [
+      { Name: "instance-id", Values: [instanceId] },
+      { Name: "state", Values: ["associated"] }
+    ]
+  }).promise();
+  const associationId = response.IamInstanceProfileAssociations[0].AssociationId;
+
+  await ec2.replaceIamInstanceProfileAssociation({
+    AssociationId: associationId,
+    IamInstanceProfile: { Arn: instanceProfileArn }
+  }).promise();
+
+  return true;
+};
+
 const runCommand = async (instanceId, script, waitCallback) => {
   const ssm = new AWS.SSM();
 
@@ -248,15 +267,16 @@ const resizeInstanceDisk = async (instanceId, diskSize, waitCallback) => {
 };
 
 module.exports = {
+  assignInstanceProfile,
   createEnvironment,
-  shareEnvironment,
   getEnvironmentInstanceId,
   getInstanceStatus,
   getRandomSubnetId,
-  waitForEnvironment,
-  waitForInstanceStatus,
-  runCommand,
   monitorCommand,
   resizeEbsVolume,
   resizeInstanceDisk,
+  runCommand,
+  shareEnvironment,
+  waitForEnvironment,
+  waitForInstanceStatus,
 };

@@ -1,8 +1,8 @@
 export AWS_DEV_ENVIRONMENT=true
 export ERL_AFLAGS="-kernel shell_history enabled"
 
-source <(curl -sL https://raw.githubusercontent.com/{gitRepo}/main/individual/support/dev_environment.sh)
-source <(curl -sL https://raw.githubusercontent.com/{gitRepo}/main/individual/support/asdf-helpers)
+source <(curl -sL https://raw.githubusercontent.com/nulib/aws-developer-environment/main/individual/support/dev_environment.sh)
+source <(curl -sL https://raw.githubusercontent.com/nulib/aws-developer-environment/main/individual/support/asdf-helpers)
 
 . $HOME/.asdf/asdf.sh
 if [[ -e ~/.aws/credentials ]]; then

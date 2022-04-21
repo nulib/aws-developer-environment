@@ -1,7 +1,9 @@
 
-Environment creation complete. You should now import this instance into the appropriate Terraform workspace and apply the changes to build the rest of the infrastructure:
+Environment creation complete. You should now create the environment(s) to support this infrastructure:
 
+$ cd environment
 $ terraform init
-$ terraform workspace select {netId} || terraform workspace new {netId}
-$ terraform import -var user_net_id={netId} aws_instance.cloud9_ide_instance {instanceId}
-$ terraform apply -var user_net_id={netId}
+$ terraform workspace select {netId}-dev || terraform workspace new {netId}-dev
+$ terraform apply
+
+Repeat the workspace and apply steps for additional environments (e.g., test) as needed

@@ -53,15 +53,27 @@ The resources for setting up and maintaining developer environments are in the `
 To create a new environment:
 
 1. Set your `AWS_PROFILE` and authenticate to a profile with admin rights in the account where the developer environments are deployed (e.g., `sandbox-admin`).
-2. Bootstrap the new environment:
+2. Create the IDE instance profile:
    ```shell
-   $ cd individual
-   $ bin/create-ide.js -n NETID -g GITHUB_USERNAME
+   $ cd individual/ide
+   $ terraform init
+   $ terraform workspace new NETID
+   $ terraform apply
    ```
-3. The output from the above command provides instructions that will:
-   - Select or create a Terraform workspace for the new environment
-   - Import the new developer EC2 instance into the Terraform state
-   - Apply changes and create all necessary resources
+3. Bootstrap the IDE using the instance role ARN created in the previous step:
+   ```shell
+   $ cd ..
+   $ bin/create-ide.js -n NETID -g GITHUB_USERNAME -e EMAIL -p INSTANCE_ROLE_ARN
+   ```
+   **Note:** The email address provided must be the `@northwestern.edu` address associated with your NUL AWS accounts.
+4. Create the rest of the environment resources:
+   ```shell
+   $ cd environment
+   $ terraform init
+   $ terraform workspace new NETID-dev
+   $ terraform apply
+   ```
+   Repeat the last two commands for additional environments (e.g., test).
 
 #### Environment Updates
 
@@ -69,11 +81,21 @@ Use the common/individual Terraform directories to add, update, and maintain res
 
 #### Deleting an Individual Environment
 
-```shell
-$ cd individual
-$ terraform workspace select NETID
-$ terraform init
-$ terraform refresh
-$ terraform state rm aws_instance.cloud9_ide_instance
-$ terraform destroy
-```
+1. Delete environment resources:
+   ```shell
+   $ cd individual/environment
+   $ terraform workspace select NETID-dev
+   $ terraform init
+   $ terraform refresh
+   $ terraform destroy
+   ```
+   Repeat for any additional environments that were created.
+2. Delete the IDE instance role:
+   ```
+   $ cd ../ide
+   $ terraform init
+   $ terraform refresh
+   $ terraform destroy
+   ```
+3. Delete the Cloud9 IDE environment manually using the AWS Console or `aws` CLI.
+

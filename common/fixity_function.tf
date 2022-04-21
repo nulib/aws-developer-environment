@@ -51,12 +51,16 @@ resource "aws_iam_policy_attachment" "fixity_execute_step_function" {
   policy_arn    = aws_iam_policy.execute_step_function.arn
 }
 
-output "fixity_function" {
-  value = {
-    function_arn          = module.execute_fixity_function.lambda_function_arn
-    function_name         = module.execute_fixity_function.lambda_function_name
-    function_invoke_arn   = module.execute_fixity_function.lambda_function_invoke_arn
-    role_arn              = module.execute_fixity_function.lambda_role_arn
-    role_name             = module.execute_fixity_function.lambda_role_name
+resource "aws_ssm_parameter" "output_parameter" {
+  for_each = {
+    fixity_function_arn          = module.execute_fixity_function.lambda_function_arn
+    fixity_function_name         = module.execute_fixity_function.lambda_function_name
+    fixity_function_invoke_arn   = module.execute_fixity_function.lambda_function_invoke_arn
+    fixity_function_role_arn     = module.execute_fixity_function.lambda_role_arn
+    fixity_function_role_name    = module.execute_fixity_function.lambda_role_name
   }
+
+  name        = "/${local.name}/terraform/common/${each.key}"
+  type        = "String"
+  value       = each.value
 }

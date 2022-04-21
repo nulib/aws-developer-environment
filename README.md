@@ -59,11 +59,12 @@ To create a new environment:
    $ terraform init
    $ terraform workspace new NETID
    $ terraform apply
+   $ profile_arn=$(terraform output -json | jq -r '.ide_instance_profile_arn.value')
    ```
 3. Bootstrap the IDE using the instance role ARN created in the previous step:
    ```shell
    $ cd ..
-   $ bin/create-ide.js -n NETID -g GITHUB_USERNAME -e EMAIL -p INSTANCE_ROLE_ARN
+   $ bin/create-ide.js -n NETID -g GITHUB_USERNAME -e EMAIL -p $profile_arn
    ```
    **Note:** The email address provided must be the `@northwestern.edu` address associated with your NUL AWS accounts.
 4. Create the rest of the environment resources:

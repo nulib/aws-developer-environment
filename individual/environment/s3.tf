@@ -74,3 +74,11 @@ resource "aws_s3_bucket_policy" "pyramid_public_read" {
   bucket = aws_s3_bucket.meadow_buckets["pyramids"].id
   policy = data.aws_iam_policy_document.pyramid_public_read.json
 }
+
+resource "aws_s3_bucket_cors_configuration" "pyramid_public_read" {
+  bucket = aws_s3_bucket.meadow_buckets["pyramids"].id
+  cors_rule {
+    allowed_methods = ["GET"]
+    allowed_origins = ["*"]
+  }  
+}

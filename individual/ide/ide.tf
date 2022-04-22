@@ -33,6 +33,13 @@ data "aws_iam_policy_document" "developer_access" {
       values      = [local.owner]
     }
   }
+
+  statement {
+    sid       = "DeveloperBucketAccess"
+    effect    = "Allow"
+    actions   = ["s3:*"]
+    resources = ["arn:aws:s3:::${local.owner}-*", "arn:aws:s3:::${local.owner}-*/*"]
+  }
 }
 
 resource "aws_iam_policy" "developer_access" {

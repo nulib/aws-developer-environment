@@ -32,6 +32,8 @@ resource "aws_serverlessapplicationrepository_cloudformation_stack" "iiif_server
     SourceBucket          = "${local.name}-shared-pyramids"
     ViewerRequestARN      = module.resolver_lambda.lambda_function_qualified_arn
     ViewerRequestType     = "Lambda@Edge"
+    ViewerResponseARN     = module.resolver_lambda.lambda_function_qualified_arn
+    ViewerResponseType    = "Lambda@Edge"
   }
 }
 

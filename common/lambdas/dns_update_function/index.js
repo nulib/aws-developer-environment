@@ -1,72 +1,90 @@
 const AWS = require('aws-sdk');
 
 const hostedZoneId = process.env.hosted_zone_id;
+const hostedZoneName = process.env.hosted_zone_name;
 
-const upsertRoute53Record = async (instanceId, owner) => {
-  const ec2 = new AWS.EC2();
+const applyChanges = async (changes) => {
   const route53 = new AWS.Route53();
 
-  response = await ec2.describeInstances({InstanceIds: [instanceId]}).promise();
-  const ipAddress = response.Reservations[0].Instances[0].PublicIpAddress;
+  if (changes.length == 0) return {};
 
   return await route53.changeResourceRecordSets({
+    HostedZoneId: hostedZoneId,
     ChangeBatch: {
-      Changes: [
-        {
-          Action: "UPSERT",
-          ResourceRecordSet: {
-            Name: owner,
-            Type: "A",
-            ResourceRecords: [{ Value: ipAddress }],
-            TTL: 60
-          }
-        }
-      ]
+      Changes: changes
     }
-  });
+  }).promise();
 };
 
-const deleteRoute53Record = async (owner) => {
-  return await route53.changeResourceRecordSets({
-    ChangeBatch: {
-      Changes: [
-        {
-          Action: "DELETE",
-          ResourceRecordSet: {
-            Name: owner,
-            Type: "A",
-            TTL: 60
-          }
-        }
-      ]
+const upsertRoute53Record = async (instanceId, hostname) => {
+  const ec2 = new AWS.EC2();
+
+  console.log("Getting public IP address for instance ", instanceId);
+  const response = await ec2.describeInstances({ InstanceIds: [instanceId] }).promise();
+  const ipAddress = response.Reservations[0].Instances[0].PublicIpAddress;
+
+  console.log(`Updating DNS record for ${hostname} to ${ipAddress}`);
+  return await applyChanges([{
+    Action: "UPSERT",
+    ResourceRecordSet: {
+      Name: hostname,
+      Type: "A",
+      ResourceRecords: [{ Value: ipAddress }],
+      TTL: 60
     }
-  });
+  }]);
+};
+
+const deleteRoute53Record = async (hostname) => {
+  const route53 = new AWS.Route53();
+
+  console.log(`Locating DNS records for ${hostname}`);
+  const { ResourceRecordSets } = await route53.listResourceRecordSets({ 
+    HostedZoneId: hostedZoneId, 
+    StartRecordName: hostname, 
+    StartRecordType: "A"
+  }).promise();
+
+  const re = new RegExp(`^${hostname.replace(/\./g, "\\.")}\.*$`);
+  const changes = ResourceRecordSets.reduce((result, ResourceRecordSet) => {
+    if (re.test(ResourceRecordSet.Name)) {
+      result.push({ Action: "DELETE", ResourceRecordSet });
+    }
+    return result;
+  }, []);
+
+  console.log(`Deleting DNS records for ${hostname}`);
+  return await applyChanges(changes);  
 }
 
-exports.handler = async (event, context) => {
+exports.handler = async (event, _context) => {
   const ec2 = new AWS.EC2();
 
   const instanceId = event.detail["instance-id"];
+  console.log("Getting tags for instance ", instanceId);
   const { Tags } = await ec2.describeTags({
     Filters: [{
       Name: "resource-id",
       Values: [instanceId]
     }]
   }).promise();
- 
-  if (! Tags.find(({Key, Value}) => { return Key == "project" && Value == "dev-environment" })) {
+
+  if (!Tags.find(({ Key, Value }) => {
+      return Key == "project" && Value == "dev-environment"
+    })) {
     return {};
   }
 
-  const ownerTag = Tags.find(({Key}) => Key == "owner");
-  const owner = ownerTag.Value;
+  const ownerTag = Tags.find(({ Key }) => Key == "owner");
+  const hostname = [ownerTag.Value, hostedZoneName].join(".");
 
   switch (event.detail.state) {
     case "running":
-      return await upsertRoute53Record(instanceId, owner);
+      return await upsertRoute53Record(instanceId, hostname);
     case "stopped":
+    case "stopping":
     case "terminated":
-      return await deleteRoute53Record(owner);
+      return await deleteRoute53Record(hostname);
     default:
       return {};
   }

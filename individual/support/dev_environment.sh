@@ -4,8 +4,9 @@ next_page() {
     cmd="$cmd --next-token $next_token"
   fi
   params=$($(echo $cmd))
-  vars=$(jq -r '.Parameters[] | (.Name | sub("^/dev-environment/"; "") | gsub("[/-]"; "_") | ascii_upcase) as $name | "DEV_\($name)=\(.Value)"' <<< $params)
+  vars=$(jq -r '.Parameters[] | select(.Name|test("/terraform/")|not) | (.Name | sub("^/dev-environment/"; "") | gsub("[/-]"; "_") | ascii_upcase) as $name | "DEV_\($name)=\(.Value)"' <<< $params)
   while read -r setting; do
+    if 
     export eval $setting
   done <<< $vars
   next_token=$(jq '.NextToken' <<< $params)

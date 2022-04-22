@@ -14,4 +14,4 @@ as_user mkdir -p ~ec2-user/.ssh
 as_user curl -s https://github.com/{githubId}.keys >> ~ec2-user/.ssh/authorized_keys
 as_user git clone https://github.com/asdf-vm/asdf.git ~ec2-user/.asdf --branch v0.9.0
 as_user aws configure set default.region us-east-1
-curl -Ls https://raw.githubusercontent.com/{gitRepo}/{gitRef}/individual/support/zlogin >> ~/.zlogin
+as_user curl -Ls https://raw.githubusercontent.com/{gitRepo}/{gitRef}/individual/support/zlogin >> ~ec2-user/.zlogin

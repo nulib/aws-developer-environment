@@ -1,7 +1,6 @@
 resource "aws_iam_role" "ide_instance_role" {
   name    = "${local.prefix}-ide-instance-role"
   path    = "/"
-  tags    = local.tags
 
   assume_role_policy = jsonencode({
     Version   = "2012-10-17"
@@ -39,7 +38,6 @@ data "aws_iam_policy_document" "developer_access" {
 resource "aws_iam_policy" "developer_access" {
   name    = "${local.prefix}-developer-access"
   policy  = data.aws_iam_policy_document.developer_access.json
-  tags    = local.tags
 }
 
 resource "aws_iam_role_policy_attachment" "developer_access" {
@@ -65,7 +63,6 @@ resource "aws_iam_role_policy_attachment" "cloud9_ssm_policy" {
 resource "aws_iam_instance_profile" "ide_instance_profile" {
   name = "${local.prefix}-ide-instance-profile"
   role    = aws_iam_role.ide_instance_role.name
-  tags    = local.tags
 }
 
 resource "aws_ssm_parameter" "ide_config" {

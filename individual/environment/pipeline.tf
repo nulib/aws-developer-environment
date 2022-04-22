@@ -57,7 +57,6 @@ resource "aws_sns_topic_subscription" "ingest_pipeline_ok" {
 resource "aws_sqs_queue" "sequins_queues" {
   for_each = toset(keys(local.actions))
   name     = "${local.prefix}-${each.key}"
-  tags     = local.tags
 
   policy = jsonencode({
     Version = "2012-10-17"
@@ -93,14 +92,11 @@ resource "aws_sqs_queue" "sequins_queues" {
 resource "aws_sns_topic" "sequins_topics" {
   for_each = toset(keys(local.actions))
   name     = "${local.prefix}-${each.key}"
-  tags     = local.tags
 }
 
 resource "aws_media_convert_queue" "transcode_queue" {
   name   = local.prefix
   status = "ACTIVE"
-
-  tags = local.tags
 }
 
 resource "aws_cloudwatch_event_rule" "mediaconvert_state_change" {
@@ -114,8 +110,6 @@ resource "aws_cloudwatch_event_rule" "mediaconvert_state_change" {
       queue  = [aws_media_convert_queue.transcode_queue.arn]
     }
   })
-
-  tags = local.tags
 }
 
 resource "aws_cloudwatch_event_target" "mediaconvert_state_change_sqs" {

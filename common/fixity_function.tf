@@ -7,7 +7,6 @@ resource "aws_cloudformation_stack" "serverless_fixity_solution" {
     Email = "fixity-blackhole@mailinator.com"
   }
   capabilities    = ["CAPABILITY_IAM"]
-  tags            = local.tags
 }
 
 data "aws_sfn_state_machine" "fixity_state_machine" {
@@ -24,7 +23,6 @@ module "execute_fixity_function" {
   memory_size     = 256
   runtime         = "nodejs14.x"
   timeout         = 60
-  tags            = local.tags
 
   source_path = [
     {
@@ -49,8 +47,6 @@ resource "aws_iam_policy" "execute_step_function" {
       Resource  = [data.aws_sfn_state_machine.fixity_state_machine.arn]
     }]
   })
-
-  tags = local.tags
 }
 
 resource "aws_iam_policy_attachment" "fixity_execute_step_function" {

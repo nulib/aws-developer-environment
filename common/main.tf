@@ -11,17 +11,20 @@ terraform {
   }
 }
 
-provider aws {}
+provider aws {
+  default_tags {
+    tags = local.tags
+  }
+}
 
 data "aws_caller_identity" "current_user" {}
 data "aws_region" "current" {}
 
 locals {
   name = "dev-environment"
-
   tags = {
     project = local.name
-    owner   = "shared"
+    owner   = "shared"  
   }
 }
 

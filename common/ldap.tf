@@ -40,12 +40,10 @@ resource "aws_ecs_task_definition" "ldap" {
   requires_compatibilities = ["FARGATE"]
   cpu                      = 256
   memory                   = 512
-  tags                     = local.tags
 }
 
 resource "aws_ecs_cluster" "dev_environment" {
   name = local.name
-  tags = local.tags
 }
 
 resource "aws_security_group" "ldap" {
@@ -68,8 +66,6 @@ resource "aws_security_group" "ldap" {
     cidr_blocks      = ["0.0.0.0/0"]
     ipv6_cidr_blocks = ["::/0"]
   }
-
-  tags = local.tags
 }
 
 resource "aws_ecs_service" "ldap" {
@@ -94,8 +90,6 @@ resource "aws_ecs_service" "ldap" {
     registry_arn = aws_service_discovery_service.ldap.arn
     port         = 389
   }
-
-  tags = local.tags
 }
 
 resource "aws_service_discovery_service" "ldap" {
@@ -114,6 +108,4 @@ resource "aws_service_discovery_service" "ldap" {
     }
     routing_policy = "MULTIVALUE"
   }
-
-  tags = local.tags
 }

@@ -10,8 +10,6 @@ module "aurora_postgresql" {
   subnets               = module.vpc.private_subnets
   allowed_cidr_blocks   = [module.vpc.vpc_cidr_block]
   apply_immediately     = true
-  tags                  = local.tags
-
   scaling_configuration = {
     auto_pause               = true
     max_capacity             = 32

@@ -6,7 +6,6 @@ locals {
 resource "aws_s3_bucket" "meadow_buckets" {
   for_each = toset(local.buckets)
   bucket   = "${local.prefix}-${each.key}"
-  tags     = local.tags
 }
 
 resource "aws_s3_bucket_cors_configuration" "meadow_uploads" {
@@ -58,4 +57,20 @@ resource "aws_s3_bucket_notification" "bucket_notification" {
     lambda_function_arn = local.common_config.fixity_function_arn
     events              = ["s3:ObjectCreated:*"]
   }
+}
+
+data "aws_iam_policy_document" "pyramid_public_read" {
+  statement {
+    actions   = ["s3:GetObject"]
+    principals {
+      type        = "AWS"
+      identifiers = ["*"]
+    }
+    resources = ["${aws_s3_bucket.meadow_buckets["pyramids"].arn}/public/*"]
+  }  
+}
+
+resource "aws_s3_bucket_policy" "pyramid_public_read" {
+  bucket = aws_s3_bucket.meadow_buckets["pyramids"].id
+  policy = data.aws_iam_policy_document.pyramid_public_read.json
 }

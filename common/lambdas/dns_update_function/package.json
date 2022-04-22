@@ -1,0 +1,14 @@
+{
+  "name": "dns_update_function",
+  "version": "1.0.0",
+  "description": "Updates Route53 when an EC2 instance starts",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "MBK",
+  "license": "Apache-2.0",
+  "devDependencies": {
+    "aws-sdk": "^2.1115.0"
+  }
+}

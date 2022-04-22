@@ -11,7 +11,11 @@ terraform {
   }
 }
 
-provider aws {}
+provider aws {
+  default_tags {
+    tags = local.tags
+  }
+}
 
 locals {
   project = "dev-environment"

@@ -39,14 +39,11 @@ resource "aws_security_group" "index" {
     cidr_blocks      = ["0.0.0.0/0"]
     ipv6_cidr_blocks = ["::/0"]
   }
-
-  tags = local.tags
 }
 
 resource "aws_elasticsearch_domain" "elasticsearch" {
   domain_name           = local.elasticsearch_domain
   elasticsearch_version = "7.10"
-  tags                  = local.tags
   advanced_options      = {
     "rest.action.multi.allow_explicit_index" = "true"
   }  

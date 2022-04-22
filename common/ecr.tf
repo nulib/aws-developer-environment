@@ -1,7 +1,6 @@
 resource "aws_ecr_repository" "dev_repository" {
   name                    = local.name
   image_tag_mutability    = "MUTABLE"
-  tags                    = local.tags
 }
 
 resource "aws_ecr_lifecycle_policy" "nulib_image_expiration" {

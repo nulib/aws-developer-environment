@@ -1,10 +1,12 @@
 const { execSync } = require("child_process");
 const commandLineArgs = require("command-line-args");
 const commandlineUsage = require("command-line-usage");
+const path = require('path');
 
-const thisOrigin = execSync("git remote get-url origin")
-  .toString()
-  .match(/:(.+)\./)[1];
+const gitOrigin = execSync("git remote get-url origin").toString().match(/:(.+)\./)[1];
+const gitRef = execSync("git branch --format='%(refname:short)'").toString().trim();
+const gitRoot = execSync("git rev-parse --show-toplevel").toString().trim();
+const supportPath = path.relative(gitRoot, path.join(__dirname, "..", "support"));
 
 const optionDefinitions = [
   {
@@ -29,20 +31,6 @@ const optionDefinitions = [
     type: String,
     required: true,
     description: "GitHub ID of environment owner",
-  },
-  {
-    name: "git-ref",
-    type: String,
-    required: true,
-    defaultValue: "main",
-    description: "Ref (branch/tag/sha) to pull init scripts from",
-  },
-  {
-    name: "git-repo",
-    type: String,
-    required: true,
-    defaultValue: thisOrigin,
-    description: "GitHub repository to pull init scripts from",
   },
   {
     name: "instance-profile",
@@ -74,6 +62,13 @@ const optionDefinitions = [
     defaultValue: 30,
     minValue: 5,
     description: "Number of minutes before environment hibernates (minimum: 5)",
+  },
+  {
+    name: "init-source",
+    type: String,
+    required: true,
+    defaultValue: `https://raw.githubusercontent.com/${gitOrigin}/${gitRef}/${supportPath}`,
+    description: "URL to where this repo's support files can be found"
   },
   {
     name: "help",

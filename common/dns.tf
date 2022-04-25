@@ -71,7 +71,7 @@ module "ide_dns_updater" {
   handler         = "index.handler"
   memory_size     = 128
   runtime         = "nodejs14.x"
-  timeout         = 10s
+  timeout         = 10
   
   environment_variables = {
     "hosted_zone_id"   = aws_route53_zone.hosted_zone.id

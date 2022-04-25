@@ -1,5 +1,5 @@
 resource "aws_ecr_repository" "dev_repository" {
-  name                    = local.name
+  name                    = local.project
   image_tag_mutability    = "MUTABLE"
 }
 

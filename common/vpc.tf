@@ -1,8 +1,8 @@
 module "vpc" {
-  source  = "terraform-aws-modules/vpc/aws"
-  version = "~> 3.14.0"
+  source    = "terraform-aws-modules/vpc/aws"
+  version   = "~> 3.14"
 
-  name = local.name
+  name = local.project
   cidr = "10.0.0.0/16"
 
   azs             = ["us-east-1a", "us-east-1b", "us-east-1c"]
@@ -15,7 +15,26 @@ module "vpc" {
 }
 
 resource "aws_ssm_parameter" "vpc_id" {
-  name    = "/${local.name}/vpc-id"
+  name    = "/${local.project}/vpc-id"
   type    = "String"
   value   = module.vpc.vpc_id
+}
+
+module "endpoints" {
+  source    = "terraform-aws-modules/vpc/aws//modules/vpc-endpoints"
+  version   = "~> 3.14"
+
+  vpc_id             = module.vpc.vpc_id
+  security_group_ids = [module.vpc.default_security_group_id]
+
+  endpoints = {
+    s3        = { 
+      route_table_ids   = [module.vpc.vpc_main_route_table_id]
+      service           = "s3"
+      service_type      = "Gateway"
+    }
+    lambda    = { service = "lambda" }
+    sns       = { service = "sns"    }
+    sqs       = { service = "sqs"    }
+  }
 }

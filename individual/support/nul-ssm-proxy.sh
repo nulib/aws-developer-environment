@@ -31,7 +31,7 @@ if [[ -n $OWNER ]]; then
     aws-adfs login --profile $AWS_PROFILE 1>&2
   fi
 
-  HOST=`aws ec2 describe-instances --filters "Name=tag:owner,Values=${OWNER}" "Name=tag:project,Values=${PROJECT}" "Name=instance-state-name,Values=pending,running,stopping,stopped" --query 'Reservations[].Instances[].InstanceId | [0]' --output text`
+  HOST=`aws ec2 describe-instances --filters "Name=tag:Owner,Values=${OWNER}" "Name=tag:Project,Values=${PROJECT}" "Name=instance-state-name,Values=pending,running,stopping,stopped" --query 'Reservations[].Instances[].InstanceId | [0]' --output text`
   if [[ $HOST == "None" ]]; then
     echo "Unable to find instance for owner ${OWNER} in project ${PROJECT}."
     exit 1

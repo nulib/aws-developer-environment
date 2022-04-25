@@ -17,13 +17,16 @@ provider aws {
   }
 }
 
+data "aws_caller_identity" "current_user" {}
+data "aws_region" "current" {}
+
 locals {
   project = "dev-environment"
   owner   = terraform.workspace
   prefix  = local.owner
 
   tags = merge(var.tags, {
-    project   = local.project
-    owner     = local.owner
+    Project = local.project
+    Owner   = local.owner
   })
 }

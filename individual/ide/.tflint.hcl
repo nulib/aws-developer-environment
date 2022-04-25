@@ -10,7 +10,7 @@ plugin "aws" {
 
 rule "aws_resource_missing_tags" {
   enabled   = true
-  tags      = ["project", "owner"]
+  tags      = ["Project", "Owner"]
 }
 
 rule "terraform_module_pinned_source" {

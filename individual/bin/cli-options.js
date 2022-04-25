@@ -33,6 +33,13 @@ const optionDefinitions = [
     description: "GitHub ID of environment owner",
   },
   {
+    name: "init-source",
+    type: String,
+    required: true,
+    defaultValue: `https://raw.githubusercontent.com/${gitOrigin}/${gitRef}/${supportPath}`,
+    description: "URL to where this repo's support files can be found"
+  },
+  {
     name: "instance-profile",
     alias: "p",
     type: String,
@@ -48,13 +55,6 @@ const optionDefinitions = [
     description: "EC2 instance type",
   },
   {
-    name: "net-id",
-    alias: "n",
-    type: String,
-    required: true,
-    description: "NetID of environment owner",
-  },
-  {
     name: "shutdown-minutes",
     alias: "s",
     type: Number,
@@ -64,11 +64,12 @@ const optionDefinitions = [
     description: "Number of minutes before environment hibernates (minimum: 5)",
   },
   {
-    name: "init-source",
+    name: "user-id",
+    alias: "u",
     type: String,
     required: true,
-    defaultValue: `https://raw.githubusercontent.com/${gitOrigin}/${gitRef}/${supportPath}`,
-    description: "URL to where this repo's support files can be found"
+    pattern: /^[a-z0-9]+$/,
+    description: "User ID for environment owner (letters and numbers only)",
   },
   {
     name: "help",
@@ -104,6 +105,7 @@ function validateOpts(opts) {
 
     valid[propName] =
       (opt.required ? value !== undefined : true) &&
+      (typeof opt.pattern !== "undefined" ? new RegExp(opt.patter).test(value) : true) &&
       (typeof opt.minValue === "number" ? value > opt.minValue : true);
   }
 

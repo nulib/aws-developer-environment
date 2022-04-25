@@ -9,7 +9,7 @@ const templatePath = (filename) =>
   path.join(__dirname, "..", "support", filename);
 
 async function createIde(context) {
-  const { netId, email, instanceProfile, instanceType, diskSize, shutdownMinutes } = context;
+  const { userId, email, instanceProfile, instanceType, diskSize, shutdownMinutes } = context;
   const ora = (await import("ora")).default;
   let spinner;
 
@@ -17,21 +17,21 @@ async function createIde(context) {
     context.subnetId = await ide.getRandomSubnetId();
 
     spinner = ora(
-      `Creating ${netId}-dev-environment (${instanceType})`
+      `Creating ${userId}-dev-environment (${instanceType})`
     ).start();
     context.environmentId = await ide.createEnvironment(
       instanceType,
-      netId,
+      userId,
       context.subnetId,
       shutdownMinutes
     );
     spinner.succeed();
 
-    spinner = ora(`Giving ${email} access to ${netId}-dev-environment`).start();
+    spinner = ora(`Giving ${email} access to ${userId}-dev-environment`).start();
     await ide.shareEnvironment(context.environmentId, email);
     spinner.succeed();
 
-    spinner = ora(`Waiting for ${netId}-dev-environment to start`).start();
+    spinner = ora(`Waiting for ${userId}-dev-environment to start`).start();
     context.instanceId = await ide.waitForEnvironment(context.environmentId);
     spinner.succeed();
 
@@ -39,7 +39,7 @@ async function createIde(context) {
     await ide.waitForInstanceStatus(context.instanceId, ["ok"]);
     spinner.succeed();
 
-    spinner = ora(`Assigning instance profile to ${netId}-dev-environment`).start();
+    spinner = ora(`Assigning instance profile to ${userId}-dev-environment`).start();
     await ide.assignInstanceProfile(context.instanceId, instanceProfile);
     spinner.succeed();
 
@@ -49,7 +49,7 @@ async function createIde(context) {
       spinner.succeed();
     }
 
-    spinner = ora(`Running init script on ${netId}-dev-environment`).start();
+    spinner = ora(`Running init script on ${userId}-dev-environment`).start();
     const script = template.formatFile(templatePath("cloud9-init.sh"), context);
     await ide.runCommand(context.instanceId, script);
     spinner.succeed();

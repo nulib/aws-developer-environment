@@ -70,12 +70,12 @@ exports.handler = async (event, _context) => {
   }).promise();
 
   if (!Tags.find(({ Key, Value }) => {
-      return Key == "project" && Value == "dev-environment"
+      return Key == "Project" && Value == "dev-environment"
     })) {
     return {};
   }
 
-  const ownerTag = Tags.find(({ Key }) => Key == "owner");
+  const ownerTag = Tags.find(({ Key }) => Key == "Owner");
   const hostname = [ownerTag.Value, hostedZoneName].join(".");
 
   switch (event.detail.state) {

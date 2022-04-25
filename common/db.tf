@@ -1,8 +1,8 @@
 module "aurora_postgresql" {
   source  = "terraform-aws-modules/rds-aurora/aws"
-  version = "~> 6.2.0"
+  version = "~> 6.2"
 
-  name                  = "${local.name}-db-cluster"
+  name                  = "${local.project}-db-cluster"
   engine                = "aurora-postgresql"
   engine_version        = "11.12"
   engine_mode           = "serverless"
@@ -14,7 +14,7 @@ module "aurora_postgresql" {
     auto_pause               = true
     max_capacity             = 32
     min_capacity             = 2
-    seconds_until_auto_pause = 300
+    seconds_until_auto_pause = 3600
     timeout_action           = "ForceApplyCapacityChange"
   }
 }

@@ -43,11 +43,11 @@ resource "aws_ecs_task_definition" "ldap" {
 }
 
 resource "aws_ecs_cluster" "dev_environment" {
-  name = local.name
+  name = local.project
 }
 
 resource "aws_security_group" "ldap" {
-  name        = "${local.name}-ldap"
+  name        = "${local.project}-ldap"
   description = "LDAP Server"
   vpc_id      = module.vpc.vpc_id
 

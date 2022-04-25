@@ -50,7 +50,7 @@ locals {
   )
 
   tags = merge(var.tags, {
-    project   = local.project
-    owner     = local.owner
-  })
+    Project = local.project
+    Owner   = local.owner
+ })
 }

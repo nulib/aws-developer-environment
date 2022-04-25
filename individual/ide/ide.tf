@@ -23,13 +23,13 @@ data "aws_iam_policy_document" "developer_access" {
     resources = ["*"]
     condition {
       test        = "StringEquals"
-      variable    = "aws:ResourceTag/project"
+      variable    = "aws:ResourceTag/Project"
       values      = [local.project]
     }
 
     condition {
       test        = "StringEquals"
-      variable    = "aws:ResourceTag/owner"
+      variable    = "aws:ResourceTag/Owner"
       values      = [local.owner]
     }
   }
@@ -40,6 +40,13 @@ data "aws_iam_policy_document" "developer_access" {
     actions   = ["s3:*"]
     resources = ["arn:aws:s3:::${local.owner}-*", "arn:aws:s3:::${local.owner}-*/*"]
   }
+
+  statement {
+    sid       = "DeveloperLambdaInvocation"
+    effect    = "Allow"
+    actions   = ["lambda:InvokeFunction"]
+    resources = ["arn:aws:lambda:${data.aws_region.current.name}:${data.aws_caller_identity.current_user.id}:function:${local.project}-*"]
+  }
 }
 
 resource "aws_iam_policy" "developer_access" {
@@ -47,7 +54,7 @@ resource "aws_iam_policy" "developer_access" {
   policy  = data.aws_iam_policy_document.developer_access.json
 }
 
-resource "aws_iam_role_policy_attachment" "developer_access" {
+resource "aws_iam_role_policy_attachment" "developer_access_ide" {
   role          = aws_iam_role.ide_instance_role.name
   policy_arn    = aws_iam_policy.developer_access.arn
 }

@@ -1,5 +1,5 @@
 resource "aws_cloudformation_stack" "serverless_fixity_solution" {
-  name            = "${local.name}-fixity"
+  name            = "${local.project}-fixity"
   template_url    = "https://s3.amazonaws.com/solutions-reference/serverless-fixity-for-digital-preservation-compliance/latest/serverless-fixity-for-digital-preservation-compliance.template"
   parameters      = {
     # The fixity stack won't deploy without an email address, so we'll give it a black hole address 
@@ -15,9 +15,9 @@ data "aws_sfn_state_machine" "fixity_state_machine" {
 
 module "execute_fixity_function" {
   source  = "terraform-aws-modules/lambda/aws"
-  version = "~> 3.1.1"
+  version = "~> 3.1"
   
-  function_name   = "${local.name}-execute-fixity"
+  function_name   = "${local.project}-execute-fixity"
   description     = "Function that receives S3 upload notification and triggers fixity step function execution"
   handler         = "index.handler"
   memory_size     = 256
@@ -37,7 +37,7 @@ module "execute_fixity_function" {
 }
 
 resource "aws_iam_policy" "execute_step_function" {
-  name   = "${local.name}-fixity-trigger-step-function"
+  name   = "${local.project}-fixity-trigger-step-function"
   policy = jsonencode({
     Version = "2012-10-17"
     Statement = [{
@@ -50,7 +50,7 @@ resource "aws_iam_policy" "execute_step_function" {
 }
 
 resource "aws_iam_policy_attachment" "fixity_execute_step_function" {
-  name          = "${local.name}-allow-fixity-trigger-function"
+  name          = "${local.project}-allow-fixity-trigger-function"
   roles         = [module.execute_fixity_function.lambda_role_name]
   policy_arn    = aws_iam_policy.execute_step_function.arn
 }
@@ -68,7 +68,7 @@ resource "aws_ssm_parameter" "output_parameter" {
     fixity_function_arn          = module.execute_fixity_function.lambda_function_arn
   }
 
-  name        = "/${local.name}/terraform/common/${each.key}"
+  name        = "/${local.project}/terraform/common/${each.key}"
   type        = "String"
   value       = each.value
 }

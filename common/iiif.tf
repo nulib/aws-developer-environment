@@ -1,7 +1,8 @@
 module "resolver_lambda" {
-  source = "terraform-aws-modules/lambda/aws"
-
-  function_name   = "${local.name}-iiif-resolver"
+  source    = "terraform-aws-modules/lambda/aws"
+  version   = "~> 3.1"
+  
+  function_name   = "${local.project}-iiif-resolver"
   description     = "viewer-request function for resolving IIIF requests"
   handler         = "index.handler"
   memory_size     = 128
@@ -20,7 +21,7 @@ module "resolver_lambda" {
 resource "aws_serverlessapplicationrepository_cloudformation_stack" "iiif_server" {
   depends_on = [aws_acm_certificate_validation.wildcard_cert_validation]
 
-  name           = "${local.name}-iiif-server"
+  name           = "${local.project}-iiif-server"
   application_id = "arn:aws:serverlessrepo:us-east-1:625046682746:applications/serverless-iiif"
   capabilities = [
     "CAPABILITY_IAM",
@@ -29,7 +30,7 @@ resource "aws_serverlessapplicationrepository_cloudformation_stack" "iiif_server
   parameters = {
     CacheDomainName       = "iiif.${aws_route53_zone.hosted_zone.name}"
     CacheSSLCertificate   = aws_acm_certificate.wildcard_cert.arn
-    SourceBucket          = "${local.name}-shared-pyramids"
+    SourceBucket          = "${local.project}-shared-pyramids"
     ViewerRequestARN      = module.resolver_lambda.lambda_function_qualified_arn
     ViewerRequestType     = "Lambda@Edge"
     ViewerResponseARN     = module.resolver_lambda.lambda_function_qualified_arn

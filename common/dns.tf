@@ -4,7 +4,7 @@ resource "aws_route53_zone" "hosted_zone" {
 
 resource "aws_service_discovery_private_dns_namespace" "internal" {
   name        = "internal.${var.hosted_zone_name}"
-  description = "Service Discovery for ${local.name}"
+  description = "Service Discovery for ${local.project}"
   vpc         = module.vpc.vpc_id
 }
 
@@ -58,19 +58,20 @@ data "aws_iam_policy_document" "dns_update" {
 }
 
 resource "aws_iam_policy" "allow_dns_update" {
-  name = "${local.name}-dns-update"
+  name = "${local.project}-dns-update"
   policy = data.aws_iam_policy_document.dns_update.json
 }
 
 module "ide_dns_updater" {
-  source = "terraform-aws-modules/lambda/aws"
-
-  function_name   = "${local.name}-ide-dns-updater"
+  source    = "terraform-aws-modules/lambda/aws"
+  version   = "~> 3.1"
+  
+  function_name   = "${local.project}-ide-dns-updater"
   description     = "Updates DNS entries for developer IDE instances on startup"
   handler         = "index.handler"
   memory_size     = 128
   runtime         = "nodejs14.x"
-  timeout         = 10
+  timeout         = 10s
   
   environment_variables = {
     "hosted_zone_id"   = aws_route53_zone.hosted_zone.id
@@ -91,7 +92,7 @@ resource "aws_iam_role_policy_attachment" "ide_dns_updater" {
 }
 
 resource "aws_cloudwatch_event_rule" "ide_dns_update" {
-  name        = "${local.name}-ide-dns-update"
+  name        = "${local.project}-ide-dns-update"
   description = "Register/deregister developer IDE DNS records"
 
   event_pattern = jsonencode({

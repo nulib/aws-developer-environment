@@ -21,10 +21,10 @@ data "aws_caller_identity" "current_user" {}
 data "aws_region" "current" {}
 
 locals {
-  name = "dev-environment"
-  tags = {
-    project = local.name
-    owner   = "shared"  
+  project = "dev-environment"
+  tags    = {
+    Project = local.project
+    Owner   = "shared"  
   }
 }
 

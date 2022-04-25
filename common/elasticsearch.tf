@@ -1,5 +1,5 @@
 locals {
-  elasticsearch_domain = "${local.name}-shared-index"
+  elasticsearch_domain = "${local.project}-shared-index"
   elasticsearch_arn    = "arn:aws:es:${data.aws_region.current.name}:${data.aws_caller_identity.current_user.account_id}:domain/${local.elasticsearch_domain}/*"
 }
 
@@ -20,7 +20,7 @@ data "aws_iam_policy_document" "elasticsearch_http_access" {
 }
 
 resource "aws_security_group" "index" {
-  name        = "${local.name}-index"
+  name        = "${local.project}-index"
   description = "Elasticsearch/OpenSearch Server"
   vpc_id      = module.vpc.vpc_id
 

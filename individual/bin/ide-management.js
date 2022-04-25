@@ -25,15 +25,15 @@ const waitForEvent = (onCheck, delay, onSuccess, onFailure, onWait) => {
 
 const createEnvironment = async (
   instanceType,
-  netId,
+  userId,
   subnetId,
   shutdownMinutes
 ) => {
   const cloud9 = new AWS.Cloud9();
   const { environmentId } = await cloud9
     .createEnvironmentEC2({
-      name: `${netId}-dev-environment`,
-      description: `${netId}'s development environment`,
+      name: `${userId}-dev-environment`,
+      description: `${userId}'s development environment`,
       instanceType: instanceType,
       imageId: "amazonlinux-2-x86_64",
       subnetId: subnetId,
@@ -41,12 +41,12 @@ const createEnvironment = async (
       automaticStopTimeMinutes: shutdownMinutes,
       tags: [
         {
-          Key: "project",
+          Key: "Project",
           Value: "dev-environment",
         },
         {
-          Key: "owner",
-          Value: netId,
+          Key: "Owner",
+          Value: userId,
         },
       ],
     })
@@ -120,7 +120,7 @@ const getRandomSubnetId = async () => {
   const { Subnets } = await ec2
     .describeSubnets({
       Filters: [
-        { Name: "tag:project", Values: ["dev-environment"] },
+        { Name: "tag:Project", Values: ["dev-environment"] },
         { Name: "tag:Name", Values: ["*-public-*"] },
       ],
     })
@@ -179,6 +179,10 @@ const runCommand = async (instanceId, script, waitCallback) => {
       DocumentName: "AWS-RunShellScript",
       InstanceIds: [instanceId],
       Parameters: payload,
+      CloudWatchOutputConfig: {
+        CloudWatchLogGroupName: "/dev-environment",
+        CloudWatchOutputEnabled: true
+      }
     })
     .promise();
 

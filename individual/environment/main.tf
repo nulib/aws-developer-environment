@@ -17,11 +17,15 @@ provider aws {
   }
 }
 
+data "aws_caller_identity" "current_user" {}
+data "aws_region" "current" {}
+
 locals {
   project                   = "dev-environment"
   prefix                    = terraform.workspace
   owner                     = split("-", local.prefix)[0]
   environment               = split("-", local.prefix)[1]
+  regional_id               = join(":", [data.aws_region.current.name, data.aws_caller_identity.current_user.id])
   common_config_ssm_path    = "/${local.project}/terraform/common/"
   ide_config_ssm_path       = "/${local.project}/terraform/${local.owner}/ide/"
 }

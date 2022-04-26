@@ -22,8 +22,8 @@ locals {
   action_map = {
     for entry in
     distinct(flatten([
-      for topic in keys(local.actions) : [
-        for queue in local.actions[topic] : {
+      for queue in keys(local.actions) : [
+        for topic in local.actions[queue] : {
           topic = topic
           queue = queue
         }
@@ -66,10 +66,10 @@ resource "aws_sqs_queue" "sequins_queues" {
         Effect    = "Allow"
         Principal = { "AWS" : "*" }
         Action    = "SQS:SendMessage"
-        Resource  = "arn:aws:sqs:::${local.prefix}-${each.key}"
+        Resource  = "arn:aws:sqs:${local.regional_id}:${local.prefix}-${each.key}"
         Condition = {
           ArnLike = {
-            "aws:SourceArn" = "arn:aws:sns:::${local.prefix}-*"
+            "aws:SourceArn" = "arn:aws:sns:${local.regional_id}:${local.prefix}-*"
           }
         }
       },
@@ -78,10 +78,10 @@ resource "aws_sqs_queue" "sequins_queues" {
         Effect    = "Allow"
         Principal = { "AWS" : "*" }
         Action    = "SQS:SendMessage"
-        Resource  = "arn:aws:sqs:::${local.prefix}-${each.key}"
+        Resource  = "arn:aws:sqs:${local.regional_id}:${local.prefix}-${each.key}"
         Condition = {
           ArnLike = {
-            "aws:SourceArn" = "arn:aws:events:::rule/${local.prefix}-*"
+            "aws:SourceArn" = "arn:aws:events:${local.regional_id}:rule/${local.prefix}-*"
           }
         }
       }

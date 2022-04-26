@@ -16,23 +16,23 @@ resource "aws_iam_role" "ide_instance_role" {
 }
 
 data "aws_iam_policy_document" "developer_access" {
-  statement {
-    sid       = "DeveloperAccess"
-    effect    = "Allow"
-    actions   = ["*"]
-    resources = ["*"]
-    condition {
-      test        = "StringEquals"
-      variable    = "aws:ResourceTag/Project"
-      values      = [local.project]
-    }
-
-    condition {
-      test        = "StringEquals"
-      variable    = "aws:ResourceTag/Owner"
-      values      = [local.owner]
-    }
-  }
+#  statement {
+#    sid       = "DeveloperAccess"
+#    effect    = "Allow"
+#    actions   = ["*"]
+#    resources = ["*"]
+#    condition {
+#      test        = "StringEquals"
+#      variable    = "aws:ResourceTag/Project"
+#      values      = [local.project]
+#    }
+#
+#    condition {
+#      test        = "StringEquals"
+#      variable    = "aws:ResourceTag/Owner"
+#      values      = [local.owner]
+#    }
+#  }
 
   statement {
     sid       = "DeveloperBucketAccess"
@@ -45,7 +45,40 @@ data "aws_iam_policy_document" "developer_access" {
     sid       = "DeveloperLambdaInvocation"
     effect    = "Allow"
     actions   = ["lambda:InvokeFunction"]
-    resources = ["arn:aws:lambda:${data.aws_region.current.name}:${data.aws_caller_identity.current_user.id}:function:${local.project}-*"]
+    resources = [
+      "arn:aws:lambda:${local.regional_id}:function:${local.owner}-*",
+      "arn:aws:lambda:${local.regional_id}:function:${local.project}-*"
+    ]
+  }
+
+  statement {
+    sid       = "DeveloperMediaConvertAccess"
+    effect    = "Allow"
+    actions   = ["mediaconvert:*"]
+    resources = [
+      "arn:aws:mediaconvert:${local.regional_id}:${local.owner}-*",
+      "arn:aws:mediaconvert:${local.regional_id}:${local.project}-*"
+    ]
+  }
+
+  statement {
+    sid       = "DeveloperSQSAccess"
+    effect    = "Allow"
+    actions   = ["sqs:*"]
+    resources = [
+      "arn:aws:sqs:${local.regional_id}:${local.owner}-*",
+      "arn:aws:sqs:${local.regional_id}:${local.project}-*"
+    ]
+  }
+
+  statement {
+    sid       = "DeveloperSNSAccess"
+    effect    = "Allow"
+    actions   = ["sns:*"]
+    resources = [
+      "arn:aws:sns:${local.regional_id}:${local.owner}-*",
+      "arn:aws:sns:${local.regional_id}:${local.project}-*"
+    ]
   }
 }
 

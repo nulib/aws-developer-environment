@@ -7,7 +7,7 @@ sh -c "$(curl -Ls {initSource}/grow_ebs_volume.sh)"
 mv ~ec2-user/.c9/stop-if-inactive.sh ~ec2-user/.c9/stop-if-inactive.sh-SAVE
 curl -sLo ~ec2-user/.c9/stop-if-inactive.sh {initSource}/stop-if-inactive.sh
 chmod 755 ~ec2-user/.c9/stop-if-inactive.sh
-yum install -y -d1 inotify-tools jq util-linux-user zsh
+yum install -y -d1 inotify-tools jq nc postgresql tmux util-linux-user zsh
 chsh -s /bin/zsh ec2-user
 alias as_user='sudo -Hiu ec2-user '
 as_user mkdir -p ~ec2-user/.ssh

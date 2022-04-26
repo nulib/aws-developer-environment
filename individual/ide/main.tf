@@ -21,9 +21,10 @@ data "aws_caller_identity" "current_user" {}
 data "aws_region" "current" {}
 
 locals {
-  project = "dev-environment"
-  owner   = terraform.workspace
-  prefix  = local.owner
+  project       = "dev-environment"
+  owner         = terraform.workspace
+  prefix        = local.owner
+  regional_id   = join(":", [data.aws_region.current.name, data.aws_caller_identity.current_user.id])
 
   tags = merge(var.tags, {
     Project = local.project

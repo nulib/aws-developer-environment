@@ -80,6 +80,16 @@ data "aws_iam_policy_document" "developer_access" {
       "arn:aws:sns:${local.regional_id}:${local.project}-*"
     ]
   }
+
+  statement {
+    sid       = "DeveloperSecretsAccess"
+    effect    = "Allow"
+    actions   = ["secretsmanager:Get*"]
+    resources = [
+      "arn:aws:secretsmanager:${local.regional_id}:secret:${local.owner}/*",
+      "arn:aws:secretsmanager:${local.regional_id}:secret:${local.project}/*"
+    ]
+  }
 }
 
 resource "aws_iam_policy" "developer_access" {

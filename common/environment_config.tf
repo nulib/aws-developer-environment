@@ -70,9 +70,26 @@ resource "aws_ssm_parameter" "ldap_ssl" {
   value   = "false"
 }
 
-resource "aws_ssm_parameter" "pipeline_lambda_version" {
+resource "aws_ssm_parameter" "pipeline_lambda" {
   for_each    = local.pipeline
-  name        = "/${local.project}/config/pipeline/${each.key}_version"
+  name        = "/${local.project}/config/pipeline/${each.key}"
   type        = "String"
-  value       = module.pipeline_lambda[each.key].lambda_function_version
+  value       = module.pipeline_lambda[each.key].lambda_function_qualified_arn
+}
+
+resource "aws_secretsmanager_secret" "developer_certificate" {
+  name = "${local.project}/ssl/certificate"
+}
+
+resource "aws_secretsmanager_secret_version" "developer_certificate" {
+  secret_id = aws_secretsmanager_secret.developer_certificate.id
+  secret_string = jsonencode(var.developer_certificate)
+}
+resource "aws_secretsmanager_secret" "developer_key" {
+  name = "${local.project}/ssl/key"
+}
+
+resource "aws_secretsmanager_secret_version" "developer_key" {
+  secret_id = aws_secretsmanager_secret.developer_key.id
+  secret_string = jsonencode(var.developer_key)
 }

@@ -1,0 +1,15 @@
+#!/bin/bash
+
+get_parameter() {
+  aws ssm get-parameter --name /dev-environment/config/$1 --with-decryption --query 'Parameter.Value' --output text
+}
+
+DB_HOST=$(get_parameter db/host)
+DB_USER=$(get_parameter db/user)
+DB_PASSWORD=$(get_parameter db/password)
+DB_PORT=$(get_parameter db/port)
+
+echo $DB_HOST
+
+DEV_ENV=${DEV_ENV:-dev}
+PGPASSWORD=$DB_PASSWORD psql -h $DB_HOST -p $DB_PORT -U $DB_USER ${DEV_PREFIX}-${DEV_ENV}-meadow

@@ -1,13 +1,17 @@
 pip uninstall aws
 curl -s https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip -o /tmp/awscliv2.zip
-unzip -q /tmp/awscliv2.zip -d /tmp
+unzip -qo /tmp/awscliv2.zip -d /tmp
 /tmp/aws/install
 rm -rf /tmp/aws
+curl -s http://nul-public.s3.amazonaws.com/ffmpeg.zip -o /tmp/ffmpeg.zip
+unzip -qo /tmp/ffmpeg.zip -d /usr/local
+rm -f /tmp/ffmpeg.zip
 sh -c "$(curl -Ls {initSource}/grow_ebs_volume.sh)"
 mv ~ec2-user/.c9/stop-if-inactive.sh ~ec2-user/.c9/stop-if-inactive.sh-SAVE
 curl -sLo ~ec2-user/.c9/stop-if-inactive.sh {initSource}/stop-if-inactive.sh
 chmod 755 ~ec2-user/.c9/stop-if-inactive.sh
-yum install -y -d1 inotify-tools jq nc postgresql tmux util-linux-user zsh
+amazon-linux-extras install epel -y
+yum install -y -d1 inotify-tools jq mediainfo nc perl-Image-ExifTool postgresql tmux util-linux-user zsh
 chsh -s /bin/zsh ec2-user
 alias as_user='sudo -Hiu ec2-user '
 as_user mkdir -p ~ec2-user/.ssh

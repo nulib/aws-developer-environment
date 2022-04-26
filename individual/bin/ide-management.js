@@ -202,22 +202,30 @@ const monitorCommand = (instanceId, commandId, waitCallback) => {
   return new Promise((resolve, reject) => {
     const checkCallback = async () => {
       const ssm = new AWS.SSM();
-      const { Status, StatusDetails } = await ssm
+      try {
+        const { Status, StatusDetails } = await ssm
         .getCommandInvocation({ InstanceId: instanceId, CommandId: commandId })
         .promise();
-      switch (Status) {
-        case "Pending":
-        case "InProgress":
-        case "Delayed":
+        switch (Status) {
+          case "Pending":
+          case "InProgress":
+          case "Delayed":
+            return undefined;
+          case "Success":
+            return Status;
+          default:
+            throw new Error(`${Status}: ${StatusDetails}`);
+        }
+      } catch (err) {
+        if (err.name === 'InvocationDoesNotExist') {
           return undefined;
-        case "Success":
-          return Status;
-        default:
-          throw new Error(`${Status}: ${StatusDetails}`);
+        } else {
+          throw err;
+        }
       }
     };
 
-    waitForEvent(checkCallback, 1000, resolve, reject, waitCallback);
+    setTimeout(waitForEvent, 2000, checkCallback, 1000, resolve, reject, waitCallback);
   });
 };
 

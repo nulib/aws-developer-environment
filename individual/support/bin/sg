@@ -1,0 +1,132 @@
+#!/bin/bash
+
+usage() {
+  cat <<__EOF__
+
+Usage:
+
+Open ports/ranges to an address or range:
+  $0 open <CIDR|all> PORT[-PORT] PORT[-PORT] ...
+Close ports/ranges to an address or range:
+  $0 close <CIDR|all> PORT[-PORT] PORT[-PORT] ...
+Close all open ports:
+  $0 close all
+Display all open ports:
+  $0 show
+
+__EOF__
+  exit 1
+}
+
+security_group_id() {
+  environment_id=$(aws ec2 describe-instances --filters Name=instance-id,Values=$(curl -s http://169.254.169.254/latest/meta-data/instance-id) --query "Reservations[0].Instances[0].Tags[?Key == 'aws:cloud9:environment'].Value" --output text)
+  aws ec2 describe-security-groups \
+    --filters Name=tag:aws:cloud9:environment,Values=$environment_id \
+    --query 'SecurityGroups[0].GroupId' --output text
+}
+
+modify_security_group() {
+  cidr=$1
+  shift 1
+  ports=$@
+
+  for port in $(echo "$ports"); do
+    result=$(aws ec2 ${operation}-security-group-ingress \
+      --group-id $(security_group_id) --port ${port} \
+      --protocol tcp --cidr ${cidr} --query Return \
+      --output text 2>&1)
+
+    if [[ $result =~ [Tt]rue ]]; then
+      echo "${port} ${confirmed} to ${cidr}"
+    elif [[ $result =~ InvalidPermission.(Duplicate|NotFound) ]]; then
+      echo "${port} ${invalid} open to ${cidr}"
+    else
+      echo "Unknown result:"
+      echo $result
+    fi
+  done
+}
+
+get_open_ports() {
+  aws ec2 describe-security-group-rules \
+    --filters Name=group-id,Values=$(security_group_id) \
+    --query 'SecurityGroupRules[?!IsEgress].[ FromPort, ToPort, CidrIpv4 ]' \
+    --output text --no-cli-pager
+}
+
+show_open_ports() {
+  result=($(get_open_ports))
+  echo "Port(s)      CIDR Block    "
+  echo "===========  =============="
+  for (( i=0; i<${#result[@]}; i+=3 )); do
+    from=${result[i]}
+    to=${result[i+1]}
+    cidr=${result[i+2]}
+
+    if [[ $from == $to ]]; then
+      port=$from
+    else
+      port="${from}-${to}"
+    fi
+
+    printf "%-11s  %s\n" "$port" "$cidr"
+  done
+}
+
+close_all_ports() {
+  result=($(get_open_ports))
+  for (( i=0; i<${#result[@]}; i+=3 )); do
+    from=${result[i]}
+    to=${result[i+1]}
+    cidr=${result[i+2]}
+    if [[ $from == $to ]]; then
+      modify_security_group "$cidr" "$from"
+    else
+      modify_security_group "$cidr" "$from-$to"
+    fi
+  done
+}
+
+operation=$1
+cidr=$2
+shift 2
+ports="$@"
+
+case $operation in
+  open)
+    operation="authorize" confirmed="opened" invalid="already"
+    ;;
+  close)
+    operation="revoke" confirmed="closed" invalid="not"
+    ;;
+  show)
+    show_open_ports
+    exit 0
+    ;;
+  *)
+    if [[ -n $operation ]]; then
+      echo "Invalid operation: $operation"
+    fi
+    usage
+esac
+
+if [[ "$operation" == "revoke" && "$cidr" == "all" && -z $ports ]]; then
+  close_all_ports
+  exit 0
+elif [[ "$cidr" == "all" ]]; then
+  cidr="0.0.0.0/0"
+elif [[ "$cidr" =~ ^[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}$ ]]; then
+  cidr="$cidr/32"
+elif [[ ! "$cidr" =~ ^[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}/[0-9]{1,2}$ ]]; then
+  echo "Invalid source CIDR specified: $cidr"
+  usage
+fi
+
+for port in $(echo "$ports"); do
+  if [[ ! "$port" =~ ^[0-9]+(-[0-9]+)?$ ]]; then
+    echo "Invalid port range specified: $port"
+    usage
+  fi
+done
+
+modify_security_group $cidr $ports

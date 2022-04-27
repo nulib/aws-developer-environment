@@ -16,23 +16,23 @@ resource "aws_iam_role" "ide_instance_role" {
 }
 
 data "aws_iam_policy_document" "developer_access" {
-#  statement {
-#    sid       = "DeveloperAccess"
-#    effect    = "Allow"
-#    actions   = ["*"]
-#    resources = ["*"]
-#    condition {
-#      test        = "StringEquals"
-#      variable    = "aws:ResourceTag/Project"
-#      values      = [local.project]
-#    }
-#
-#    condition {
-#      test        = "StringEquals"
-#      variable    = "aws:ResourceTag/Owner"
-#      values      = [local.owner]
-#    }
-#  }
+  statement {
+    sid       = "DeveloperAccess"
+    effect    = "Allow"
+    actions   = ["*"]
+    resources = ["*"]
+    condition {
+      test        = "StringEquals"
+      variable    = "aws:ResourceTag/Project"
+      values      = [local.project]
+    }
+
+    condition {
+      test        = "StringEquals"
+      variable    = "aws:ResourceTag/Owner"
+      values      = [local.owner]
+    }
+  }
 
   statement {
     sid       = "DeveloperBucketAccess"
@@ -89,6 +89,13 @@ data "aws_iam_policy_document" "developer_access" {
       "arn:aws:secretsmanager:${local.regional_id}:secret:${local.owner}/*",
       "arn:aws:secretsmanager:${local.regional_id}:secret:${local.project}/*"
     ]
+  }
+
+  statement {
+    sid       = "DeveloperMessageAccess"
+    effect    = "Allow"
+    actions   = ["sts:DecodeAuthorizationMessage"]
+    resources = ["*"]
   }
 }
 

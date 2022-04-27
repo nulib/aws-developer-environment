@@ -34,6 +34,10 @@
     ProxyCommand sh -c "~/.ssh/nul-ssm-proxy.sh %h %p"
   ```
 
+### Setting up the IDE
+
+It's up to you to set up the instance to your liking. Just be aware that any changes to `~/.zshrc` _must_ retain the contents of this project's [zshrc](individual/support/zshrc) in order for the environment to work correctly.
+
 ## Environment Setup & Maintenance
 
 ### Common Infrastructure

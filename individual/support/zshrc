@@ -1,3 +1,4 @@
+export PATH=$HOME/bin:$PATH
 export AWS_DEV_ENVIRONMENT=true
 export ERL_AFLAGS="-kernel shell_history enabled"
 

@@ -5,13 +5,18 @@ variable "hosted_zone_name" {
 
 variable "lambda_path" {
   type    = string
-  default = "../../meadow/priv/nodejs"
+  default = "../../meadow/lambdas"
 }
 
-variable "developer_certificate" {
+# Secrets
+
+variable "config_secrets" {
+  type    = map(string)
+}
+
+variable "ssl_certificate_file" {
   type    = string
 }
-
-variable "developer_key" {
+variable "ssl_key_file" {
   type    = string
 }

@@ -40,36 +40,6 @@ resource "aws_ssm_parameter" "ldap_host" {
   value   = join(".", [aws_service_discovery_service.ldap.name, aws_service_discovery_private_dns_namespace.internal.name])
 }
 
-resource "aws_ssm_parameter" "ldap_base" {
-  name    = "/${local.project}/config/ldap/base"
-  type    = "String"
-  value   = "DC=library,DC=northwestern,DC=edu"
-}
-
-resource "aws_ssm_parameter" "ldap_port" {
-  name    = "/${local.project}/config/ldap/port"
-  type    = "String"
-  value   = "389"
-}
-
-resource "aws_ssm_parameter" "ldap_user_dn" {
-  name    = "/${local.project}/config/ldap/user_dn"
-  type    = "SecureString"
-  value   = "cn=Administrator,cn=Users,dc=library,dc=northwestern,dc=edu"
-}
-
-resource "aws_ssm_parameter" "ldap_password" {
-  name    = "/${local.project}/config/ldap/password"
-  type    = "SecureString"
-  value   = "d0ck3rAdm1n!"
-}
-
-resource "aws_ssm_parameter" "ldap_ssl" {
-  name    = "/${local.project}/config/ldap/ssl"
-  type    = "String"
-  value   = "false"
-}
-
 resource "aws_ssm_parameter" "pipeline_lambda" {
   for_each    = local.pipeline
   name        = "/${local.project}/config/pipeline/${each.key}"
@@ -77,19 +47,27 @@ resource "aws_ssm_parameter" "pipeline_lambda" {
   value       = module.pipeline_lambda[each.key].lambda_function_qualified_arn
 }
 
-resource "aws_secretsmanager_secret" "developer_certificate" {
+resource "aws_ssm_parameter" "config_secret" {
+  for_each    = var.config_secrets
+  name        = "/${local.project}/config/${each.key}"
+  type        = "SecureString"
+  value       = each.value
+}
+
+resource "aws_secretsmanager_secret" "ssl_certificate" {
   name = "${local.project}/ssl/certificate"
 }
 
-resource "aws_secretsmanager_secret_version" "developer_certificate" {
-  secret_id = aws_secretsmanager_secret.developer_certificate.id
-  secret_string = jsonencode(var.developer_certificate)
+resource "aws_secretsmanager_secret_version" "ssl_certificate" {
+  secret_id       = aws_secretsmanager_secret.ssl_certificate.id
+  secret_string   = jsonencode(file(var.ssl_certificate_file))
 }
-resource "aws_secretsmanager_secret" "developer_key" {
+
+resource "aws_secretsmanager_secret" "ssl_key" {
   name = "${local.project}/ssl/key"
 }
 
-resource "aws_secretsmanager_secret_version" "developer_key" {
-  secret_id = aws_secretsmanager_secret.developer_key.id
-  secret_string = jsonencode(var.developer_key)
+resource "aws_secretsmanager_secret_version" "ssl_key" {
+  secret_id       = aws_secretsmanager_secret.ssl_key.id
+  secret_string   = jsonencode(file(var.ssl_key_file))
 }

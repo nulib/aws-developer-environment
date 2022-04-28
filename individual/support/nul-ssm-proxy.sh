@@ -13,20 +13,11 @@ SLEEP_DURATION=5
 HOST=$1
 PORT=$2
 
-if [[ $HOST =~ ^([^.]+)\.dev-environment\.nul ]]; then
+if [[ $HOST =~ ^([^.]+)\.dev\.rdc\.library\.northwestern\.edu$ ]]; then
   OWNER=${BASH_REMATCH[1]}
   PROJECT=dev-environment
   AWS_PROFILE=sandbox
-elif [[ $HOST =~ ^([^.]+)\.([^.]+)\.nul ]]; then
-  OWNER=${BASH_REMATCH[1]}
-  PROJECT=${BASH_REMATCH[2]}
-elif [[ $HOST =~ ^([^.]+)\.([^.]+)\.([^.]+)\.nul ]]; then
-  OWNER=${BASH_REMATCH[1]}
-  PROJECT=${BASH_REMATCH[2]}
-  AWS_PROFILE=${BASH_REMATCH[3]}
-fi
 
-if [[ -n $OWNER ]]; then
   if ! aws sts get-caller-identity >/dev/null 2>&1; then
     aws-adfs login --profile $AWS_PROFILE 1>&2
   fi

@@ -12,20 +12,16 @@ gpg --list-secret-keys --keyid-format LONG
 # It's a 16-digit hex number that follows an integer and a slash
 git config --global user.signingkey KEY_ID
 
+# Configure Git
+git config --global user.name "Your Name Here"
+git config --global user.email your.git.email@example.com
+
 # Clone Meadow
 cd ~/environment
-for repo in meadow miscellany; do
-  git clone git@github.com:nulib/$repo.git
-done
-
-# Just for now until miscellancy is merged
-cd miscellany
-git switch 2874-dev-environment
-
-source ~/.zshrc
+git clone git@github.com:nulib/meadow.git
 
 # Install tool dependencies
-cd ../meadow
+cd meadow
 git switch 2874-cloud9-environment # Just for now until merged
 asdf-install-plugins
 asdf install
@@ -36,3 +32,9 @@ asdf reshim
 # If you want oh-my-zsh or another shell configurator, install it now
 # But don't forget to save/re-add the contents of ~/.zshrc if the
 # install overwrites it.
+#
+# For example, to install OhMyZSH:
+
+sh -c "$(curl -fsSL https://raw.github.com/ohmyzsh/ohmyzsh/master/tools/install.sh)"
+cat ~/.zshrc.pre-oh-my-zsh >> ~/.zshrc
+

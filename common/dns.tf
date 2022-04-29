@@ -58,8 +58,9 @@ data "aws_iam_policy_document" "dns_update" {
 }
 
 resource "aws_iam_policy" "allow_dns_update" {
-  name = "${local.project}-dns-update"
-  policy = data.aws_iam_policy_document.dns_update.json
+  path    = local.iam_path
+  name    = "${local.project}-dns-update"
+  policy  = data.aws_iam_policy_document.dns_update.json
 }
 
 module "ide_dns_updater" {
@@ -71,7 +72,7 @@ module "ide_dns_updater" {
   handler         = "index.handler"
   memory_size     = 128
   runtime         = "nodejs14.x"
-  timeout         = 10
+  role_path       = local.iam_path
   
   environment_variables = {
     "hosted_zone_id"   = aws_route53_zone.hosted_zone.id

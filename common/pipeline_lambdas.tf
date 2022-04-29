@@ -92,7 +92,7 @@ locals {
 
 resource "aws_iam_role" "pipeline_lambda_role" {
   name    = "${local.project}-pipeline-lambda-role"
-  path    = "/"
+  path    = local.iam_path
 
   assume_role_policy = jsonencode({
     Version   = "2012-10-17"

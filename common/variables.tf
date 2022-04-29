@@ -11,7 +11,11 @@ variable "lambda_path" {
 # Secrets
 
 variable "config_secrets" {
-  type    = map(string)
+  type    = map(map(any))
+}
+
+variable "ldap_config" {
+  type    = map(any)
 }
 
 variable "ssl_certificate_file" {

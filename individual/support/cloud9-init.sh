@@ -24,3 +24,4 @@ as_user aws configure set default.region us-east-1
 as_user git clone https://github.com/nulib/nul-rdc-devtools ~ec2-user/.nul-rdc-devtools
 as_user echo 'git -C $HOME/.nul-rdc-devtools/ pull --ff-only' >> ~ec2-user/.zshrc
 as_user echo 'source $HOME/.nul-rdc-devtools/scripts/login.sh' >> ~ec2-user/.zshrc
+chown -R ec2-user:ec2-user ~ec2-user/.ssh

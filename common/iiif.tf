@@ -8,6 +8,7 @@ module "resolver_lambda" {
   memory_size     = 128
   runtime         = "nodejs14.x"
   timeout         = 3
+  role_path       = local.iam_path
   lambda_at_edge  = true
 
   source_path = [

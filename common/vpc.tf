@@ -11,7 +11,7 @@ module "vpc" {
 
   enable_dns_hostnames    = true
   enable_nat_gateway      = true
-  enable_vpn_gateway      = true
+  enable_vpn_gateway      = false
 }
 
 resource "aws_ssm_parameter" "vpc_id" {

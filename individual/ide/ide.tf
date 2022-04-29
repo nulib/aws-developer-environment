@@ -1,6 +1,6 @@
 resource "aws_iam_role" "ide_instance_role" {
   name    = "${local.prefix}-ide-instance-role"
-  path    = "/"
+  path    = local.iam_path
 
   assume_role_policy = jsonencode({
     Version   = "2012-10-17"
@@ -100,6 +100,7 @@ data "aws_iam_policy_document" "developer_access" {
 }
 
 resource "aws_iam_policy" "developer_access" {
+  path    = local.iam_path
   name    = "${local.prefix}-developer-access"
   policy  = data.aws_iam_policy_document.developer_access.json
 }

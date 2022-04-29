@@ -22,6 +22,7 @@ data "aws_region" "current" {}
 
 locals {
   project       = "dev-environment"
+  iam_path      = "/${local.project}/"
   regional_id   = join(":", [data.aws_region.current.name, data.aws_caller_identity.current_user.id])
   tags    = {
     Project = local.project

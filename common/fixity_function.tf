@@ -23,6 +23,7 @@ module "execute_fixity_function" {
   memory_size     = 256
   runtime         = "nodejs14.x"
   timeout         = 60
+  role_path       = local.iam_path
 
   source_path = [
     {
@@ -37,6 +38,7 @@ module "execute_fixity_function" {
 }
 
 resource "aws_iam_policy" "execute_step_function" {
+  path   = local.iam_path
   name   = "${local.project}-fixity-trigger-step-function"
   policy = jsonencode({
     Version = "2012-10-17"

@@ -16,7 +16,7 @@ PORT=$2
 if [[ $HOST =~ ^([^.]+)\.dev\.rdc\.library\.northwestern\.edu$ ]]; then
   OWNER=${BASH_REMATCH[1]}
   PROJECT=dev-environment
-  AWS_PROFILE=sandbox
+  AWS_PROFILE=staging
 
   if ! aws sts get-caller-identity >/dev/null 2>&1; then
     aws-adfs login --profile $AWS_PROFILE 1>&2

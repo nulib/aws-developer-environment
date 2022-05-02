@@ -19,13 +19,14 @@ if [[ $HOST =~ ^([^.]+)\.dev\.rdc\.library\.northwestern\.edu$ ]]; then
   AWS_PROFILE=staging
 
   if ! aws sts get-caller-identity >/dev/null 2>&1; then
-    aws-adfs login --profile $AWS_PROFILE 1>&2
+    echo "Please make sure you have valid credentials for AWS profile \`$AWS_PROFILE'"
+    exit 255
   fi
 
   HOST=`aws ec2 describe-instances --filters "Name=tag:Owner,Values=${OWNER}" "Name=tag:Project,Values=${PROJECT}" "Name=instance-state-name,Values=pending,running,stopping,stopped" --query 'Reservations[].Instances[].InstanceId | [0]' --output text`
   if [[ $HOST == "None" ]]; then
     echo "Unable to find instance for owner ${OWNER} in project ${PROJECT}."
-    exit 1
+    exit 255
   fi
 fi
 

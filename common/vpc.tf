@@ -14,12 +14,6 @@ module "vpc" {
   enable_vpn_gateway      = false
 }
 
-resource "aws_ssm_parameter" "vpc_id" {
-  name    = "/${local.project}/vpc-id"
-  type    = "String"
-  value   = module.vpc.vpc_id
-}
-
 module "endpoints" {
   source    = "terraform-aws-modules/vpc/aws//modules/vpc-endpoints"
   version   = "~> 3.14"

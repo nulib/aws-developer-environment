@@ -64,13 +64,3 @@ resource "aws_lambda_permission" "allow_invoke_from_bucket" {
   principal       = "s3.amazonaws.com"
   source_arn      = "arn:aws:s3:::*"
 }
-
-resource "aws_ssm_parameter" "output_parameter" {
-  for_each = {
-    fixity_function_arn          = module.execute_fixity_function.lambda_function_arn
-  }
-
-  name        = "/${local.project}/terraform/common/${each.key}"
-  type        = "String"
-  value       = each.value
-}

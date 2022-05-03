@@ -40,12 +40,6 @@ const optionDefinitions = [
     description: "URL to where this repo's support files can be found"
   },
   {
-    name: "instance-id",
-    type: String,
-    required: false,
-    description: "ID of already-created instance"
-  },
-  {
     name: "instance-profile",
     alias: "p",
     type: String,

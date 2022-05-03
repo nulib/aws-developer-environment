@@ -7,9 +7,6 @@ curl -s http://nul-public.s3.amazonaws.com/ffmpeg.zip -o /tmp/ffmpeg.zip
 unzip -qo /tmp/ffmpeg.zip -d /usr/local
 rm -f /tmp/ffmpeg.zip
 sh -c "$(curl -Ls {initSource}/grow_ebs_volume.sh)"
-mv ~ec2-user/.c9/stop-if-inactive.sh ~ec2-user/.c9/stop-if-inactive.sh-SAVE
-curl -sLo ~ec2-user/.c9/stop-if-inactive.sh {initSource}/stop-if-inactive.sh
-chmod 755 ~ec2-user/.c9/stop-if-inactive.sh
 amazon-linux-extras install epel -y
 yum install -y -d1 inotify-tools jq mediainfo nc perl-Image-ExifTool postgresql tmux util-linux-user zsh
 chsh -s /bin/zsh ec2-user
@@ -24,4 +21,7 @@ as_user aws configure set default.region us-east-1
 as_user git clone https://github.com/nulib/nul-rdc-devtools ~ec2-user/.nul-rdc-devtools
 as_user echo 'git -C $HOME/.nul-rdc-devtools/ pull --ff-only' >> ~ec2-user/.zshrc
 as_user echo 'source $HOME/.nul-rdc-devtools/scripts/login.sh' >> ~ec2-user/.zshrc
+as_user mv ~ec2-user/.c9/stop-if-inactive.sh ~ec2-user/.c9/stop-if-inactive.sh-SAVE
+as_user ln -s ~ec2-user/.nul-rdc-devtools/helpers/stop-if-inactive.sh ~ec2-user/.c9/stop-if-inactive.sh
+as_user chmod 755 ~ec2-user/.c9/stop-if-inactive.sh
 chown -R ec2-user:ec2-user ~ec2-user/.ssh

@@ -16,12 +16,7 @@ PORT=$2
 if [[ $HOST =~ ^([^.]+)\.dev\.rdc\.library\.northwestern\.edu$ ]]; then
   OWNER=${BASH_REMATCH[1]}
   PROJECT=dev-environment
-  AWS_PROFILE=staging
-
-  if ! aws sts get-caller-identity >/dev/null 2>&1; then
-    echo "Please make sure you have valid credentials for AWS profile \`$AWS_PROFILE'"
-    exit 255
-  fi
+  AWS_PROFILE=dev-environment
 
   HOST=`aws ec2 describe-instances --filters "Name=tag:Owner,Values=${OWNER}" "Name=tag:Project,Values=${PROJECT}" "Name=instance-state-name,Values=pending,running,stopping,stopped" --query 'Reservations[].Instances[].InstanceId | [0]' --output text`
   if [[ $HOST == "None" ]]; then

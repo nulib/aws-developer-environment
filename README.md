@@ -4,9 +4,14 @@
 
 ### One-Time Setup
 
-4. Copy the [SSH Proxy Script](individual/support/nul-ssm-proxy.sh) to the `~/.ssh` directory of the user who will be using the new environment.
-5. `chmod 0755 ~/.ssh/nul-ssm-proxy.sh`
-6. Add the following stanza to the user's `~/.ssh/config`:
+1. Add the IDE access key pair to your AWS configuration
+   ```
+   bash <(curl -s https://raw.githubusercontent.com/nulib/aws-developer-environment/main/individual/support/dev_environment_profile.sh)
+   ```
+   (You may be prompted to log into AWS by `aws-adfs`.)
+2. Copy the [SSH Proxy Script](individual/support/nul-ssm-proxy.sh) to the `~/.ssh` directory of the user who will be using the new environment.
+3. `chmod 0755 ~/.ssh/nul-ssm-proxy.sh`
+4. Add the following stanza to the user's `~/.ssh/config`:
    ```
    Host *.dev.rdc.library.northwestern.edu
      User ec2-user
@@ -33,7 +38,6 @@
     UserKnownHostsFile /dev/null
     ProxyCommand sh -c "~/.ssh/nul-ssm-proxy.sh %h %p"
   ```
-- You _must_ have [valid `staging` credentials](http://docs.rdc.library.northwestern.edu/2._Developer_Guides/Environment_and_Tools/Using-aws-adfs/#usage) before you can connect via SSH.
 
 ### Navigating the IDE
 
@@ -78,7 +82,7 @@ Each developer VM will shut down if no *keep-alive* condition has been met for a
 
 **Note:** This list specifically excludes active SSH sessions, which are allowed to time out normally.
 
-Since AWS does not charge for stopped VMs, it's important to remember to close VS Code and Cloud9 Console sessions when they're not actively being used. If you get an error trying to reconnect to a stopped VM, make sure your `aws-adfs` staging login hasn't expired and try again.
+Since AWS does not charge for stopped VMs, it's important to remember to close VS Code and Cloud9 Console sessions when they're not actively being used.
 
 More keep-alive conditions (e.g., active `tmux` sessions) can be added if needed. Suggestions are welcome.
 

@@ -4,14 +4,23 @@
 
 ### One-Time Setup
 
-1. Add the IDE access key pair to your AWS configuration
+1. Make sure your `~/.bash_profile` file exports the path to your `aws` executable. For example:
+   ```
+   $ which aws
+   /usr/local/bin/aws
+
+   $ cat ~/.bash_profile
+   export PATH=/usr/local/bin:/usr/local/sbin:$PATH
+   ```
+   If not, or if `~/.bash_profile` doesn't exist, create or update it as necessary.
+2. Add the IDE access key pair to your AWS configuration
    ```
    bash <(curl -s https://raw.githubusercontent.com/nulib/aws-developer-environment/main/individual/support/dev_environment_profile.sh)
    ```
    (You may be prompted to log into AWS by `aws-adfs`.)
-2. Copy the [SSH Proxy Script](individual/support/nul-ssm-proxy.sh) to the `~/.ssh` directory of the user who will be using the new environment.
-3. `chmod 0755 ~/.ssh/nul-ssm-proxy.sh`
-4. Add the following stanza to the user's `~/.ssh/config`:
+3. Copy the [SSH Proxy Script](individual/support/nul-ssm-proxy.sh) to the `~/.ssh` directory of the user who will be using the new environment.
+4. `chmod 0755 ~/.ssh/nul-ssm-proxy.sh`
+5. Add the following stanza to the user's `~/.ssh/config`:
    ```
    Host *.dev.rdc.library.northwestern.edu
      User ec2-user

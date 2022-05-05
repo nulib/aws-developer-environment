@@ -105,28 +105,20 @@ The resources for setting up and maintaining developer environments are in the `
 To create a new environment:
 
 1. Set your `AWS_PROFILE` and authenticate to a profile with admin rights in the account where the developer environments are deployed (e.g., `sandbox-admin`).
-2. Create the IDE instance profile:
+2. Create the developer's environment:
    ```shell
-   $ cd individual/ide
+   $ cd individual
    $ terraform init
-   $ terraform workspace new NETID
+   $ terraform workspace new USERID
    $ terraform apply
    $ profile_arn=$(terraform output -json | jq -r '.ide_instance_profile_arn.value')
    ```
 3. Bootstrap the IDE using the instance role ARN created in the previous step:
    ```shell
    $ cd ..
-   $ bin/create-ide.js -n NETID -g GITHUB_USERNAME -e EMAIL -p $profile_arn
+   $ bin/create-ide.js -u USERID -g GITHUB_USERNAME -e EMAIL -p $profile_arn
    ```
    **Note:** The email address provided must be the `@northwestern.edu` address associated with your NUL AWS accounts.
-4. Create the rest of the environment resources:
-   ```shell
-   $ cd environment
-   $ terraform init
-   $ terraform workspace new NETID-dev
-   $ terraform apply
-   ```
-   Repeat the last two commands for additional environments (e.g., test).
 
 #### Environment Updates
 
@@ -134,18 +126,9 @@ Use the common/individual Terraform directories to add, update, and maintain res
 
 #### Deleting an Individual Environment
 
-1. Delete environment resources:
-   ```shell
-   $ cd individual/environment
-   $ terraform workspace select NETID-dev
-   $ terraform init
-   $ terraform refresh
-   $ terraform destroy
+1. Make sure all S3 buckets are *completely empty*.
+2. Delete the developer's environment:
    ```
-   Repeat for any additional environments that were created.
-2. Delete the IDE instance role:
-   ```
-   $ cd ../ide
    $ terraform init
    $ terraform refresh
    $ terraform destroy

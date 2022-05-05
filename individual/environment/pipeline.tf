@@ -87,16 +87,17 @@ resource "aws_sqs_queue" "sequins_queues" {
       }
     ]
   })
+
 }
 
 resource "aws_sns_topic" "sequins_topics" {
-  for_each = toset(keys(local.actions))
-  name     = "${local.prefix}-${each.key}"
+  for_each    = toset(keys(local.actions))
+  name        = "${local.prefix}-${each.key}"
 }
 
 resource "aws_media_convert_queue" "transcode_queue" {
-  name   = local.prefix
-  status = "ACTIVE"
+  name    = local.prefix
+  status  = "ACTIVE"
 }
 
 resource "aws_cloudwatch_event_rule" "mediaconvert_state_change" {
@@ -113,7 +114,7 @@ resource "aws_cloudwatch_event_rule" "mediaconvert_state_change" {
 }
 
 resource "aws_cloudwatch_event_target" "mediaconvert_state_change_sqs" {
-  rule      = aws_cloudwatch_event_rule.mediaconvert_state_change.name
-  target_id = "SendToTranscodeCompleteQueue"
-  arn       = aws_sqs_queue.sequins_queues["transcode-complete"].arn
+  rule        = aws_cloudwatch_event_rule.mediaconvert_state_change.name
+  target_id   = "SendToTranscodeCompleteQueue"
+  arn         = aws_sqs_queue.sequins_queues["transcode-complete"].arn
 }

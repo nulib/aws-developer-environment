@@ -54,7 +54,7 @@ resource "aws_s3_bucket_notification" "bucket_notification" {
   for_each    = toset(local.notification_buckets)
   bucket      = aws_s3_bucket.meadow_buckets[each.key].id
   lambda_function {
-    lambda_function_arn = local.common_config.fixity_function_arn
+    lambda_function_arn = var.fixity_function_arn
     events              = ["s3:ObjectCreated:*"]
   }
 }
@@ -71,8 +71,8 @@ data "aws_iam_policy_document" "pyramid_public_read" {
 }
 
 resource "aws_s3_bucket_policy" "pyramid_public_read" {
-  bucket = aws_s3_bucket.meadow_buckets["pyramids"].id
-  policy = data.aws_iam_policy_document.pyramid_public_read.json
+  bucket    = aws_s3_bucket.meadow_buckets["pyramids"].id
+  policy    = data.aws_iam_policy_document.pyramid_public_read.json
 }
 
 resource "aws_s3_bucket_cors_configuration" "pyramid_public_read" {

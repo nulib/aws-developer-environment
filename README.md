@@ -5,7 +5,7 @@
 ### One-Time Setup
 
 1. Make sure your `~/.bash_profile` file exports the path to your `aws` executable. For example:
-   ```
+   ```shell
    $ which aws
    /usr/local/bin/aws
 
@@ -14,7 +14,7 @@
    ```
    If not, or if `~/.bash_profile` doesn't exist, create or update it as necessary.
 2. Add the IDE access key pair to your AWS configuration
-   ```
+   ```shell
    bash <(curl -s https://raw.githubusercontent.com/nulib/aws-developer-environment/main/individual/support/dev_environment_profile.sh)
    ```
    (You may be prompted to log into AWS by `aws-adfs`.)
@@ -64,6 +64,57 @@
   - [`psql`](https://www.postgresql.org/docs/current/app-psql.html)
   - [`tmux`](https://github.com/tmux/tmux/wiki)
 - Developer VMs are persistent, but also easy to tear down and rebuild in minutes. Meadow data (S3/DB/OpenSearch) will survive a reset,though your configurations and customizations will be gone. Don't hesitate to ask for a reset if you need one.
+- Thanks to the `ForwardAgent yes` line in the SSH config above, your local SSH identities will be forwarded/delegated to the remote machine for the duration of your login session. That means you'll be able to automatically authenticate to servers that use public key authentication (e.g., GitHub) without having to copy your private keys around.
+
+#### First Login
+
+##### Configure Git
+
+```shell
+git config --global user.name "Your Name Here"
+git config --global user.email your.git.email@example.com
+```
+
+If you sign your Git commits, you'll need to copy your GPG signing key to your dev environment keyring. Basic instructions on how to do that can be found [here](https://makandracards.com/makandra-orga/37763-gpg-extract-private-key-and-import-on-different-machine). (*Don't forget to delete the exported/copied/imported key files from both your local and remote machines after importing.* Once the secret key is in your keychain, you no longer need the file, and having it sitting around can be a security risk.)
+
+Once you've done that, you'll need to [configure Git to use your signing key](https://docs.github.com/en/authentication/managing-commit-signature-verification/telling-git-about-your-signing-key).
+
+##### Clone Meadow
+
+```shell
+cd ~/environment
+git clone git@github.com:nulib/meadow.git
+```
+
+##### Install Development Tools
+
+```shell
+cd meadow
+# Install necessary asdf plugins and tool versions
+asdf-install-plugins
+asdf install
+
+# Set the global default for each tool to use the latest installed version
+for p in $(asdf plugin list); do
+  asdf global $p $(asdf list $p | sort | tail -1)
+done
+
+# Install the right version of npm for each installed version of NodeJS
+asdf-install-npm
+asdf reshim
+```
+
+##### Other Customizations
+
+If you want to use [OhMyZSH](https://ohmyz.sh) or another shell configurator, you can install it now. But don't forget to save/re-add the contents of `~/.zshrc` if the
+install overwrites it.
+
+For example, to install OhMyZSH:
+
+```shell
+sh -c "$(curl -fsSL https://raw.github.com/ohmyzsh/ohmyzsh/master/tools/install.sh)"
+cat ~/.zshrc.pre-oh-my-zsh >> ~/.zshrc
+```
 
 #### Convenience Scripts
 
@@ -137,7 +188,7 @@ Use the common/individual Terraform directories to add, update, and maintain res
 
 1. Make sure all S3 buckets are *completely empty*.
 2. Delete the developer's environment:
-   ```
+   ```shell
    $ terraform init
    $ terraform refresh
    $ terraform destroy

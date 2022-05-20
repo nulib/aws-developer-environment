@@ -52,16 +52,6 @@ data "aws_iam_policy_document" "developer_access" {
   }
 
   statement {
-    sid       = "DeveloperMediaConvertAccess"
-    effect    = "Allow"
-    actions   = ["mediaconvert:*"]
-    resources = [
-      "arn:aws:mediaconvert:${local.regional_id}:${local.owner}-*",
-      "arn:aws:mediaconvert:${local.regional_id}:${local.project}-*"
-    ]
-  }
-
-  statement {
     sid       = "DeveloperSQSAccess"
     effect    = "Allow"
     actions   = ["sqs:*"]

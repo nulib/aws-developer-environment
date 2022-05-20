@@ -13,30 +13,41 @@ SLEEP_DURATION=5
 HOST=$1
 PORT=$2
 
+if [[ -x $AWS_COMMAND ]]; then
+  true # noop
+elif (type aws > /dev/null) && [[ -x $(which aws) ]]; then
+  AWS_COMMAND=$(which aws)
+elif [[ -x /usr/local/bin/aws ]]; then
+  AWS_COMMAND=/usr/local/bin/aws
+elif [[ -x /usr/bin/aws ]]; then
+  AWS_COMMAND=/usr/bin/aws
+fi
+
 if [[ $HOST =~ ^([^.]+)\.dev\.rdc\.library\.northwestern\.edu$ ]]; then
   OWNER=${BASH_REMATCH[1]}
   PROJECT=dev-environment
   AWS_PROFILE=dev-environment
+  AWS_REGION=us-east-1
 
-  HOST=`aws ec2 describe-instances --filters "Name=tag:Owner,Values=${OWNER}" "Name=tag:Project,Values=${PROJECT}" "Name=instance-state-name,Values=pending,running,stopping,stopped" --query 'Reservations[].Instances[].InstanceId | [0]' --output text`
+  HOST=$($AWS_COMMAND ec2 describe-instances --filters "Name=tag:Owner,Values=${OWNER}" "Name=tag:Project,Values=${PROJECT}" "Name=instance-state-name,Values=pending,running,stopping,stopped" --query 'Reservations[].Instances[].InstanceId | [0]' --output text)
   if [[ $HOST == "None" ]]; then
     echo "Unable to find instance for owner ${OWNER} in project ${PROJECT}."
     exit 255
   fi
 fi
 
-STATUS=`aws ssm describe-instance-information --filters Key=InstanceIds,Values=${HOST} --output text --query 'InstanceInformationList[0].PingStatus' --profile ${AWS_PROFILE} --region ${AWS_REGION}`
+STATUS=$($AWS_COMMAND ssm describe-instance-information --filters Key=InstanceIds,Values=${HOST} --output text --query 'InstanceInformationList[0].PingStatus' --profile ${AWS_PROFILE} --region ${AWS_REGION})
 
 # If the instance is online, start the session
 if [ $STATUS == 'Online' ]; then
-    aws ssm start-session --target $HOST --document-name AWS-StartSSHSession --parameters portNumber=${PORT} --profile ${AWS_PROFILE} --region ${AWS_REGION}
+    $AWS_COMMAND ssm start-session --target $HOST --document-name AWS-StartSSHSession --parameters portNumber=${PORT} --profile ${AWS_PROFILE} --region ${AWS_REGION}
 else
     # Instance is offline - start the instance
-    aws ec2 start-instances --instance-ids $HOST --profile ${AWS_PROFILE} --region ${AWS_REGION}
+    $AWS_COMMAND ec2 start-instances --instance-ids $HOST --profile ${AWS_PROFILE} --region ${AWS_REGION}
     sleep ${SLEEP_DURATION}
     COUNT=0
     while [ ${COUNT} -le ${MAX_ITERATION} ]; do
-        STATUS=`aws ssm describe-instance-information --filters Key=InstanceIds,Values=${HOST} --output text --query 'InstanceInformationList[0].PingStatus' --profile ${AWS_PROFILE} --region ${AWS_REGION}`
+        STATUS=$($AWS_COMMAND ssm describe-instance-information --filters Key=InstanceIds,Values=${HOST} --output text --query 'InstanceInformationList[0].PingStatus' --profile ${AWS_PROFILE} --region ${AWS_REGION})
         if [ ${STATUS} == 'Online' ]; then
             break
         fi
@@ -49,5 +60,5 @@ else
         fi
     done
     # Instance is online now - start the session
-    aws ssm start-session --target $HOST --document-name AWS-StartSSHSession --parameters portNumber=${PORT} --profile ${AWS_PROFILE} --region ${AWS_REGION}
+    $AWS_COMMAND ssm start-session --target $HOST --document-name AWS-StartSSHSession --parameters portNumber=${PORT} --profile ${AWS_PROFILE} --region ${AWS_REGION}
 fi

@@ -41,6 +41,12 @@ data "aws_iam_policy_document" "ide_session_policy" {
       values      = [local.project]
     }
   }
+
+  statement {
+    effect    = "Allow"
+    actions   = ["ssm:TerminateSession"]
+    resources = ["arn:aws:ssm:us-east-1:625046682746:session/*"]
+  }
 }
 
 resource "aws_iam_user" "ide_session_user" {

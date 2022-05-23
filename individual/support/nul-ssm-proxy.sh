@@ -29,14 +29,14 @@ if [[ $HOST =~ ^([^.]+)\.dev\.rdc\.library\.northwestern\.edu$ ]]; then
   AWS_PROFILE=dev-environment
   AWS_REGION=us-east-1
 
-  HOST=$($AWS_COMMAND ec2 describe-instances --filters "Name=tag:Owner,Values=${OWNER}" "Name=tag:Project,Values=${PROJECT}" "Name=instance-state-name,Values=pending,running,stopping,stopped" --query 'Reservations[].Instances[].InstanceId | [0]' --output text)
+  HOST=$($AWS_COMMAND --profile $AWS_PROFILE ec2 describe-instances --filters "Name=tag:Owner,Values=${OWNER}" "Name=tag:Project,Values=${PROJECT}" "Name=instance-state-name,Values=pending,running,stopping,stopped" --query 'Reservations[].Instances[].InstanceId | [0]' --output text)
   if [[ $HOST == "None" ]]; then
     echo "Unable to find instance for owner ${OWNER} in project ${PROJECT}."
     exit 255
   fi
 fi
 
-STATUS=$($AWS_COMMAND ssm describe-instance-information --filters Key=InstanceIds,Values=${HOST} --output text --query 'InstanceInformationList[0].PingStatus' --profile ${AWS_PROFILE} --region ${AWS_REGION})
+STATUS=$($AWS_COMMAND --profile $AWS_PROFILE ssm describe-instance-information --filters Key=InstanceIds,Values=${HOST} --output text --query 'InstanceInformationList[0].PingStatus' --profile ${AWS_PROFILE} --region ${AWS_REGION})
 
 # If the instance is online, start the session
 if [ $STATUS == 'Online' ]; then
@@ -47,7 +47,7 @@ else
     sleep ${SLEEP_DURATION}
     COUNT=0
     while [ ${COUNT} -le ${MAX_ITERATION} ]; do
-        STATUS=$($AWS_COMMAND ssm describe-instance-information --filters Key=InstanceIds,Values=${HOST} --output text --query 'InstanceInformationList[0].PingStatus' --profile ${AWS_PROFILE} --region ${AWS_REGION})
+        STATUS=$($AWS_COMMAND --profile $AWS_PROFILE ssm describe-instance-information --filters Key=InstanceIds,Values=${HOST} --output text --query 'InstanceInformationList[0].PingStatus' --profile ${AWS_PROFILE} --region ${AWS_REGION})
         if [ ${STATUS} == 'Online' ]; then
             break
         fi

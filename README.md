@@ -13,6 +13,7 @@
    export PATH=/usr/local/bin:/usr/local/sbin:$PATH
    ```
    If not, or if `~/.bash_profile` doesn't exist, create or update it as necessary.
+2. Install the [AWS SSM Session Manager Plugin](https://docs.aws.amazon.com/systems-manager/latest/userguide/session-manager-working-with-install-plugin.html#install-plugin-macos)
 2. Add the IDE access key pair to your AWS configuration
    ```shell
    bash <(curl -s https://raw.githubusercontent.com/nulib/aws-developer-environment/main/individual/support/dev_environment_profile.sh)

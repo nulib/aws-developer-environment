@@ -123,6 +123,9 @@ cat ~/.zshrc.pre-oh-my-zsh >> ~/.zshrc
   - `clean-s3 dev -y` - delete everything from your dev buckets
   - Without the `-y`, it displays a dry run showing what *would* be deleted if `-y` were present
 - `dbconnect` - connect to your `dev` database via `psql`
+- `es-proxy` - set up a tunnel to the Elasticsearch index
+  - `es-proxy start` - start the proxy
+  - `es-proxy stop` - stop the proxy
 - `sg` - open and close ports, e.g.:
   - `sg open <IPADDR | IPRANGE | all> PORT` - allow access on port `PORT` from a single source IP address, a source IP range (expressed in CIDR notation), or the entire Internet
   - `sg close <IPADDR | IPRANGE | all> PORT` - close a previously opened port. The address or range must exactly match what was specified on `open`.

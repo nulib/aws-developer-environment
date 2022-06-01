@@ -13,6 +13,8 @@ SLEEP_DURATION=5
 HOST=$1
 PORT=$2
 
+export PATH=$HOME/.asdf/shims:$HOME/.asdf/bin:/usr/local/bin:$PATH
+
 if [[ -x $AWS_COMMAND ]]; then
   true # noop
 elif (type aws > /dev/null) && [[ -x $(which aws) ]]; then
@@ -24,10 +26,10 @@ elif [[ -x /usr/bin/aws ]]; then
 fi
 
 if [[ $HOST =~ ^([^.]+)\.dev\.rdc\.library\.northwestern\.edu$ ]]; then
-  OWNER=${BASH_REMATCH[1]}
-  PROJECT=dev-environment
-  AWS_PROFILE=dev-environment
-  AWS_REGION=us-east-1
+  export OWNER=${BASH_REMATCH[1]}
+  export PROJECT=dev-environment
+  export AWS_PROFILE=dev-environment
+  export AWS_REGION=us-east-1
 
   HOST=$($AWS_COMMAND --profile $AWS_PROFILE ec2 describe-instances --filters "Name=tag:Owner,Values=${OWNER}" "Name=tag:Project,Values=${PROJECT}" "Name=instance-state-name,Values=pending,running,stopping,stopped" --query 'Reservations[].Instances[].InstanceId | [0]' --output text)
   if [[ $HOST == "None" ]]; then

@@ -1,0 +1,12 @@
+{
+  "name": "uptime-metric",
+  "version": "1.0.0",
+  "description": "Post custom CloudWatch metrics for developer environment uptimes",
+  "main": "index.js",
+  "author": "nulib",
+  "license": "Apache-2.0",
+  "dependencies": {
+    "@aws-sdk/client-cloudwatch": "^3.110.0",
+    "@aws-sdk/client-ec2": "^3.110.0"
+  }
+}

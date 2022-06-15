@@ -118,9 +118,8 @@ resource "aws_iam_role_policy_attachment" "pipeline_lambda_basic_execution" {
 
 module "pipeline_lambda" {
   for_each    = local.pipeline
-  source      = "github.com/nulib/terraform-aws-lambda?ref=build-in-docker-with-npm-arguments"
-  # source      = ""terraform-aws-modules/lambda/aws""
-  # version     = "~> 3.1"
+  source      = "terraform-aws-modules/lambda/aws"
+  version     = "~> 3.1"
   
   function_name             = "${local.project}-${each.value.source}"
   build_in_docker           = true

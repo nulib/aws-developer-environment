@@ -132,17 +132,23 @@ resource "aws_ssm_parameter" "ide_config" {
 }
 
 resource "aws_cloudwatch_metric_alarm" "ide_uptime_alarm" {
-  alarm_name                  = "${local.prefix}-ide-uptime"
-  comparison_operator         = "GreaterThanOrEqualToThreshold"
-  evaluation_periods          = 3
-  datapoints_to_alarm         = 3
-  metric_name                 = "ContinuousUptime"
+  alarm_name                  = "${local.owner}-ide-uptime"
+  alarm_description           = "Monitor Developer IDE Uptime for ${local.prefix}"
   namespace                   = "NUL/DevEnvironment"
+  metric_name                 = "ContinuousUptime"
   statistic                   = "Minimum"
+  comparison_operator         = "GreaterThanOrEqualToThreshold"
+  threshold                   = 16200
+
+  dimensions = {
+    Owner = local.owner
+  }
+
+  evaluation_periods          = 2
+  datapoints_to_alarm         = 1
   period                      = 300
   treat_missing_data          = "notBreaching"
-  threshold                   = "16200"
-  alarm_description           = "Monitor Developer IDE Uptime for ${local.prefix}"
+
   alarm_actions               = [local.common_config.ide_uptime_alert_topic]
   ok_actions                  = [local.common_config.ide_uptime_alert_topic]
   insufficient_data_actions   = []

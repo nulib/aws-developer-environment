@@ -55,6 +55,14 @@ resource "aws_cloudwatch_event_target" "uptime_metric" {
   arn         = module.uptime_metric.lambda_function_arn
 }
 
+resource "aws_lambda_permission" "uptime_metric_update" {
+  statement_id    = "AllowUptimeMetricsFromEventbridge"
+  action          = "lambda:InvokeFunction"
+  function_name   = module.uptime_metric.lambda_function_name
+  principal       = "events.amazonaws.com"
+  source_arn      = aws_cloudwatch_event_rule.uptime_metric.arn
+}
+
 resource "aws_sns_topic" "ide_uptime_alert" {
   name = "${local.project}-ide-uptime-alert" 
 }

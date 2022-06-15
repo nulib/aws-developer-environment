@@ -5,32 +5,40 @@ const util = require('util');
 const BilledStates = ["running"];
 const CloudWatchNamespace = "NUL/DevEnvironment";
 
-const uptimeMetric = (instance) => {
+const uptimes = (instance) => {
+  const result = { uptime: 0, continuousUptime: 0 };
   if (BilledStates.indexOf(instance.State.Name) > -1) {
-    const ownerTag = instance.Tags.find(({Key}) => Key == "Owner");
-    const instanceOwner = ownerTag?.Value || "Unknown";
-
-    return [
-      {
-        Dimensions: [{
-          Name: "Owner",
-          Value: instanceOwner
-        }],
-        MetricName: "ContinuousUptime",
-        Unit: "Seconds",
-        Value: (new Date() - instance.LaunchTime) / 1000
-      },
-      {
-        Dimensions: [{
-          Name: "Owner",
-          Value: instanceOwner
-        }],
-        MetricName: "Uptime",
-        Unit: "Seconds",
-        Value: 300
-      }
-    ]
+    result.uptime = 300;
+    result.continuousUptime = (new Date() - instance.LaunchTime) / 1000;
   }
+  return result
+};
+
+const uptimeMetric = (instance) => {
+  const ownerTag = instance.Tags.find(({Key}) => Key == "Owner");
+  const instanceOwner = ownerTag?.Value || "Unknown";
+  const { uptime, continuousUptime } = uptimes(instance);
+  
+  return [
+    {
+      Dimensions: [{
+        Name: "Owner",
+        Value: instanceOwner
+      }],
+      MetricName: "ContinuousUptime",
+      Unit: "Seconds",
+      Value: continuousUptime
+    },
+    {
+      Dimensions: [{
+        Name: "Owner",
+        Value: instanceOwner
+      }],
+      MetricName: "Uptime",
+      Unit: "Seconds",
+      Value: uptime
+    }
+  ]
 }
 
 const putUptimeMetrics = async () => {

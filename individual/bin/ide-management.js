@@ -76,24 +76,17 @@ const shareEnvironment = async (environmentId, email) => {
   }
 };
 
-const getEnvironmentInstanceId = async (environmentId) => {
+const findInstance = async (filters) => {
   const ec2 = new AWS.EC2();
-  const { Reservations } = await ec2
-    .describeInstances({
-      Filters: [
-        {
-          Name: "tag:aws:cloud9:environment",
-          Values: [environmentId],
-        },
-        {
-          Name: "instance-state-name",
-          Values: ["running"],
-        },
-      ],
-    })
-    .promise();
+  const response = await ec2.describeInstances({Filters: filters}).promise();
+  return response?.Reservations[0]?.Instances[0]?.InstanceId;
+}
 
-  return Reservations[0]?.Instances[0]?.InstanceId;
+const findInstanceByOwnerId = async (owner) => {
+  return await findInstance([
+    { Name: "tag:Project", Values: ['dev-environment'] },
+    { Name: "tag:Owner", Values: [owner] },
+  ]);
 };
 
 const getInstanceStatus = async (instanceId) => {
@@ -132,7 +125,10 @@ const getRandomSubnetId = async () => {
 const waitForEnvironment = (environmentId, waitCallback) => {
   return new Promise((resolve, reject) => {
     const checkCallback = async () => {
-      return await getEnvironmentInstanceId(environmentId);
+      return await findInstance([
+        { Name: "tag:aws:cloud9:environment", Values: [environmentId] },
+        { Name: "instance-state-name", Values: ["running"], }
+      ]);
     };
 
     waitForEvent(checkCallback, 1000, resolve, reject, waitCallback);
@@ -281,7 +277,7 @@ const resizeInstanceDisk = async (instanceId, diskSize, waitCallback) => {
 module.exports = {
   assignInstanceProfile,
   createEnvironment,
-  getEnvironmentInstanceId,
+  findInstanceByOwnerId,
   getInstanceStatus,
   getRandomSubnetId,
   monitorCommand,

@@ -122,7 +122,7 @@ const getRandomSubnetId = async () => {
   return Subnets[Math.floor(Math.random() * Subnets.length)]?.SubnetId;
 };
 
-const waitForEnvironment = (environmentId, waitCallback) => {
+const waitForEnvironment = (environmentId) => {
   return new Promise((resolve, reject) => {
     const checkCallback = async () => {
       return await findInstance([
@@ -131,18 +131,18 @@ const waitForEnvironment = (environmentId, waitCallback) => {
       ]);
     };
 
-    waitForEvent(checkCallback, 1000, resolve, reject, waitCallback);
+    waitForEvent(checkCallback, 1000, resolve, reject);
   });
 };
 
-const waitForInstanceStatus = (instanceId, statuses, waitCallback) => {
+const waitForInstanceStatus = (instanceId, statuses) => {
   return new Promise((resolve, reject) => {
     const checkCallback = async () => {
       const status = await getInstanceStatus(instanceId);
       return statuses.indexOf(status) > -1 ? status : undefined;
     };
 
-    waitForEvent(checkCallback, 1000, resolve, reject, waitCallback);
+    waitForEvent(checkCallback, 1000, resolve, reject);
   });
 };
 
@@ -165,7 +165,9 @@ const assignInstanceProfile = async (instanceId, instanceProfileArn) => {
   return true;
 };
 
-const runCommand = async (instanceId, script, waitCallback) => {
+const runCommand = async (instanceIds, script, opts) => {
+  if (opts === undefined) opts = {};
+
   const ssm = new AWS.SSM();
 
   const payload = { commands: script.split(/\r?\n/) };
@@ -173,7 +175,7 @@ const runCommand = async (instanceId, script, waitCallback) => {
   const { Command } = await ssm
     .sendCommand({
       DocumentName: "AWS-RunShellScript",
-      InstanceIds: [instanceId],
+      InstanceIds: instanceIds,
       Parameters: payload,
       CloudWatchOutputConfig: {
         CloudWatchLogGroupName: "/dev-environment",
@@ -182,19 +184,24 @@ const runCommand = async (instanceId, script, waitCallback) => {
     })
     .promise();
 
-  switch (Command.Status) {
-    case "Pending":
-    case "InProgress":
-    case "Delayed":
-      return await monitorCommand(instanceId, Command.CommandId, waitCallback);
-    case "Success":
-      return Command.Status;
-    default:
-      throw new Error(`${Command.Status}: ${Command.StatusDetails}`);
+  if (opts.monitor) {
+    switch (Command.Status) {
+      case "Pending":
+      case "InProgress":
+      case "Delayed":
+        promises = instanceIds.map((instanceId) => monitorCommand(instanceId, Command.CommandId));
+        return await Promise.allSettled(promises);
+      case "Success":
+        return Command.Status;
+      default:
+        throw new Error(`${Command.Status}: ${Command.StatusDetails}`);
+    }  
+  } else {
+    return Command;
   }
 };
 
-const monitorCommand = (instanceId, commandId, waitCallback) => {
+const monitorCommand = (instanceId, commandId) => {
   return new Promise((resolve, reject) => {
     const checkCallback = async () => {
       const ssm = new AWS.SSM();
@@ -221,11 +228,11 @@ const monitorCommand = (instanceId, commandId, waitCallback) => {
       }
     };
 
-    setTimeout(waitForEvent, 2000, checkCallback, 1000, resolve, reject, waitCallback);
+    setTimeout(waitForEvent, 2000, checkCallback, 1000, resolve, reject);
   });
 };
 
-const waitForVolume = (volumeId, waitCallback) => {
+const waitForVolume = (volumeId) => {
   return new Promise((resolve, reject) => {
     const checkCallback = async () => {
       const ec2 = new AWS.EC2();
@@ -243,11 +250,11 @@ const waitForVolume = (volumeId, waitCallback) => {
       return response.VolumesModifications.length == 1 ? "ok" : undefined;
     };
 
-    waitForEvent(checkCallback, 1000, resolve, reject, waitCallback);
+    waitForEvent(checkCallback, 1000, resolve, reject);
   });
 };
 
-const resizeEbsVolume = async (volumeId, diskSize, waitCallback) => {
+const resizeEbsVolume = async (volumeId, diskSize) => {
   const ec2 = new AWS.EC2();
   const { VolumeModification } = await ec2
     .modifyVolume({ VolumeId: volumeId, Size: diskSize })
@@ -258,20 +265,20 @@ const resizeEbsVolume = async (volumeId, diskSize, waitCallback) => {
     case "optimizing":
       return "ok";
     case "modifying":
-      return await waitForVolume(volumeId, waitCallback);
+      return await waitForVolume(volumeId);
     case "failed":
       throw new Error(VolumeModification.StatusMessage);
   }
 };
 
-const resizeInstanceDisk = async (instanceId, diskSize, waitCallback) => {
+const resizeInstanceDisk = async (instanceId, diskSize) => {
   const ec2 = new AWS.EC2();
   const response = await ec2
     .describeInstances({ InstanceIds: [instanceId] })
     .promise();
   const volumeId =
     response.Reservations[0].Instances[0].BlockDeviceMappings[0].Ebs.VolumeId;
-  return await resizeEbsVolume(volumeId, diskSize, waitCallback);
+  return await resizeEbsVolume(volumeId, diskSize);
 };
 
 module.exports = {

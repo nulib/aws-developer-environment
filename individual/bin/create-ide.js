@@ -51,7 +51,7 @@ async function createIde(context) {
 
     spinner = ora(`Running init script on ${userId}-dev-environment`).start();
     const script = template.formatFile(templatePath("cloud9-init.sh"), context);
-    await ide.runCommand(context.instanceId, script);
+    await ide.runCommand([context.instanceId], script, { monitor: true });
     spinner.succeed();
 
     return context;

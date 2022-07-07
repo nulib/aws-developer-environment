@@ -1,4 +1,4 @@
-# Cloud9 Developer Environment
+# AWS EC2-Based Developer Environment
 
 ## Developers
 
@@ -67,6 +67,10 @@
   - [`tmux`](https://github.com/tmux/tmux/wiki)
 - Developer VMs are persistent, but also easy to tear down and rebuild in minutes. Meadow data (S3/DB/OpenSearch) will survive a reset,though your configurations and customizations will be gone. Don't hesitate to ask for a reset if you need one.
 - Thanks to the `ForwardAgent yes` line in the SSH config above, your local SSH identities will be forwarded/delegated to the remote machine for the duration of your login session. That means you'll be able to automatically authenticate to servers that use public key authentication (e.g., GitHub) without having to copy your private keys around.
+- By default, your  have read access to everything in the staging environment, and full access to resources required for "normal" development work (e.g., your own S3 buckets)
+  - [`aws-adfs`](http://docs.rdc.library.northwestern.edu/2._Developer_Guides/Environment_and_Tools/Using-aws-adfs/#usage) is also installed and configured in case you need to assume a different role (e.g., to run a Terraform or SAM deploy that creates resources you don't have access to by default)
+  - Export the correct `AWS_PROFILE` and log in as usual to assume one of your regular AWS roles
+  - To return to the default instance role, simply `export AWS_PROFILE=default` or `unset AWS_PROFILE`
 
 #### First Login
 
@@ -144,6 +148,7 @@ Each developer VM will shut down if no *keep-alive* condition has been met for a
 
 - An open [VS Code Remote SSH](https://code.visualstudio.com/docs/remote/ssh) session
 - An active [AWS Cloud9 Console](https://us-east-1.console.aws.amazon.com/cloud9/home/shared) session
+- The existence of a file called `/home/ec2-user/.keep-alive` (this is a useful tool to keep your instance running during long-running operations, but don't forget to delete the file afterward!)
 
 **Note:** This list specifically excludes active SSH sessions, which are allowed to time out normally.
 

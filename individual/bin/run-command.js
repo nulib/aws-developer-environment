@@ -5,24 +5,17 @@ const fs = require("fs");
 const ide = require("./ide-management");
 
 async function runCommand(args) {
-  const instanceId = await ide.findInstanceByOwnerId(args.owner);
-
-  const ora = (await import("ora")).default;
-  spinner = ora(`Running ${args.script} on instance ${instanceId}`).start();
-  try {
-    const script = fs.readFileSync(args.script).toString();
-    await ide.runCommand(instanceId, script);
-    spinner.succeed();  
-  } catch (err) {
-    if (spinner && spinner.isSpinning) spinner.fail();
-    throw err;
-  }
+  const script = fs.readFileSync(args.script).toString();
+  const instanceIds = await Promise.all(args.owner.map(ide.findInstanceByOwnerId));
+  console.log(`Running ${args.script} on instances: ${instanceIds.join(', ')}`);
+  return await ide.runCommand(instanceIds, script);
 }
 
 const args = commandLineArgs([{
   name: "owner",
   alias: "o",
   type: String,
+  multiple: true,
   required: true
 }, {
   name: "script",

@@ -21,6 +21,11 @@ variable "ldap_config" {
 variable "ssl_certificate_file" {
   type    = string
 }
+
 variable "ssl_key_file" {
   type    = string
+}
+
+variable "acme_cert_state_store" {
+  type    = map(string)
 }

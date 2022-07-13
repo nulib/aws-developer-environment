@@ -24,7 +24,7 @@ module "uptime_metric" {
   description     = "Reports developer IDE uptime metrics to CloudWatch"
   handler         = "index.handler"
   memory_size     = 128
-  runtime         = "nodejs14.x"
+  runtime         = "nodejs16.x"
   role_path       = local.iam_path
   timeout         = 5
   

@@ -71,7 +71,7 @@ module "ide_dns_updater" {
   description     = "Updates DNS entries for developer IDE instances on startup"
   handler         = "index.handler"
   memory_size     = 128
-  runtime         = "nodejs14.x"
+  runtime         = "nodejs16.x"
   role_path       = local.iam_path
   timeout         = 10
 

@@ -21,7 +21,7 @@ module "execute_fixity_function" {
   description     = "Function that receives S3 upload notification and triggers fixity step function execution"
   handler         = "index.handler"
   memory_size     = 256
-  runtime         = "nodejs14.x"
+  runtime         = "nodejs16.x"
   timeout         = 60
   role_path       = local.iam_path
 

@@ -6,7 +6,7 @@ module "resolver_lambda" {
   description     = "viewer-request function for resolving IIIF requests"
   handler         = "index.handler"
   memory_size     = 128
-  runtime         = "nodejs14.x"
+  runtime         = "nodejs16.x"
   timeout         = 3
   role_path       = local.iam_path
   lambda_at_edge  = true

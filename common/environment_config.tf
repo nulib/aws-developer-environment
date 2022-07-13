@@ -50,4 +50,8 @@ resource "aws_secretsmanager_secret_version" "config_secrets" {
 resource "aws_secretsmanager_secret_version" "ssl_certificate" {
   secret_id = aws_secretsmanager_secret.ssl_certificate.id
   secret_string = jsonencode(local.ssl_certificate)
+
+  lifecycle {
+    ignore_changes = all
+  }
 }

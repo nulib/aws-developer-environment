@@ -170,7 +170,10 @@ const runCommand = async (instanceIds, script, opts) => {
 
   const ssm = new AWS.SSM();
 
-  const payload = { commands: script.split(/\r?\n/) };
+  const preface = [
+    "alias as_user='sudo -Hiu ec2-user '"
+  ]
+  const payload = { commands: [preface, script.split(/\r?\n/)].flat() };
 
   const { Command } = await ssm
     .sendCommand({

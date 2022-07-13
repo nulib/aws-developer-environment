@@ -11,7 +11,6 @@ amazon-linux-extras install epel -y
 yum install -y -d1 inotify-tools jq mediainfo nc perl-Image-ExifTool postgresql tmux util-linux-user zsh
 chsh -s /bin/zsh ec2-user
 hostname "{userId}.dev.rdc.library.northwestern.edu"
-alias as_user='sudo -Hiu ec2-user '
 as_user mkdir -p ~ec2-user/.ssh
 as_user curl -s https://github.com/{githubId}.keys >> ~ec2-user/.ssh/authorized_keys
 as_user ssh-keyscan github.com >> ~ec2-user/.ssh/known_hosts

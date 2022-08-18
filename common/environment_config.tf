@@ -27,8 +27,8 @@ locals {
   )
 
   ssl_certificate = {
-    certificate = file(var.ssl_certificate_file)
-    key         = file(var.ssl_key_file)
+    certificate = fileexists(var.ssl_certificate_file) ? file(var.ssl_certificate_file) : ""
+    key         = fileexists(var.ssl_key_file) ? file(var.ssl_key_file) : ""
   }
 }
 

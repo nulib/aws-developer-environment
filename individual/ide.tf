@@ -87,6 +87,13 @@ data "aws_iam_policy_document" "developer_access" {
     actions   = ["sts:DecodeAuthorizationMessage"]
     resources = ["*"]
   }
+
+  statement {
+    sid       = "DeveloperOpensearchAccess"
+    effect    = "Allow"
+    actions   = ["iam:Passrole"]
+    resources = [local.common_config.elasticsearch_snapshot_role]
+  }
 }
 
 resource "aws_iam_policy" "developer_access" {

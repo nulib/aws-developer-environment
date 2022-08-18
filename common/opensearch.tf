@@ -67,3 +67,63 @@ resource "aws_opensearch_domain" "search_index" {
     ignore_changes = [ebs_options]
   }
 }
+
+resource "aws_s3_bucket" "search_snapshot_bucket" {
+  bucket = "${local.opensearch_domain}-snapshots"
+}
+
+resource "aws_s3_bucket_public_access_block" "search_snapshot_public_access" {
+  bucket = aws_s3_bucket.search_snapshot_bucket.id
+
+  block_public_acls         = true
+  block_public_policy       = true
+  ignore_public_acls        = true
+  restrict_public_buckets   = true
+}
+
+resource "aws_iam_role" "search_snapshot_bucket_access" {
+  path                  = local.iam_path
+  name                  = "${local.opensearch_domain}-snapshot-role"
+  assume_role_policy    = data.aws_iam_policy_document.search_snapshot_assume_role.json
+}
+
+resource "aws_iam_role_policy" "search_snapshot_bucket_access" {
+  name    = "${local.opensearch_domain}-snapshot-policy"
+  role    = aws_iam_role.search_snapshot_bucket_access.name
+  policy  = data.aws_iam_policy_document.search_snapshot_bucket_access.json
+}
+
+data "aws_iam_policy_document" "search_snapshot_assume_role" {
+  statement {
+    effect  = "Allow"
+    actions = ["sts:AssumeRole"]
+    principals {
+      type        = "Service"
+      identifiers = ["es.amazonaws.com"]
+    }
+  }
+}
+
+data "aws_iam_policy_document" "search_snapshot_bucket_access" {
+  statement {
+    effect    = "Allow"
+    actions   = ["s3:ListAllMyBuckets"]
+    resources = ["*"]
+  }
+
+  statement {
+    effect    = "Allow"
+    actions   = ["s3:ListBucket"]
+    resources = [aws_s3_bucket.search_snapshot_bucket.arn]
+  }
+
+  statement {
+    effect = "Allow"
+    actions = [
+      "s3:PutObject",
+      "s3:GetObject",
+      "s3:DeleteObject"
+    ]
+    resources = ["${aws_s3_bucket.search_snapshot_bucket.arn}/*"]
+  }
+}

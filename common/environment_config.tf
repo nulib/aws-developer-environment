@@ -6,6 +6,13 @@ locals {
       user        = module.aurora_postgresql.cluster_master_username
       password    = module.aurora_postgresql.cluster_master_password
     }
+
+    dc_api = {
+      v2 = {
+        base_url = "https://dcapi.rdc-staging.library.northwestern.edu"
+      }
+    }
+
     index = {
       index_endpoint    = "https://${aws_opensearch_domain.search_index.endpoint}"
       kibana_endpoint   = "https://${aws_opensearch_domain.search_index.kibana_endpoint}"

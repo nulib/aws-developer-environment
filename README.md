@@ -158,6 +158,8 @@ More keep-alive conditions (e.g., active `tmux` sessions) can be added if needed
 
 ## Environment Setup & Maintenance
 
+All of the following steps require you to have your `AWS_PROFILE` set to a configured profile with full admin access to the NUL staging environment (e.g., `staging-admin`). If the specified profile is linked to an ADFS role, you'll also need to make sure you're [logged in](http://docs.rdc.library.northwestern.edu/2._Developer_Guides/Environment_and_Tools/Using-aws-adfs/#usage).
+
 ### Common Infrastructure
 
 The `common` directory contains the Terraform manifests for provisioning and maintaining components common to all developer environments.
@@ -174,8 +176,7 @@ The resources for setting up and maintaining developer environments are in the `
 
 To create a new environment:
 
-1. Set your `AWS_PROFILE` and authenticate to a profile with admin rights in the account where the developer environments are deployed (e.g., `sandbox-admin`).
-2. Create the developer's environment:
+1. Create the developer's environment:
    ```shell
    $ cd individual
    $ terraform init
@@ -183,7 +184,7 @@ To create a new environment:
    $ terraform apply
    $ profile_arn=$(terraform output -json | jq -r '.ide_instance_profile_arn.value')
    ```
-3. Bootstrap the IDE using the instance role ARN created in the previous step:
+2. Bootstrap the IDE using the instance role ARN created in the previous step:
    ```shell
    $ cd ..
    $ bin/create-ide.js -u USERID -g GITHUB_USERNAME -e EMAIL -p $profile_arn

@@ -136,7 +136,12 @@ module "pipeline_lambda" {
   environment_variables   = contains(keys(each.value), "environment") ? each.value.environment : {}
   layers                  = contains(keys(each.value), "layers") ? each.value.layers : []
 
-  source_path = "${var.lambda_path}/${each.value.source}"
+  source_path = [
+    {
+      path = "${var.lambda_path}/${each.value.source}",
+      commands = [ "npm ci --only prod --no-bin-links", ":zip" ]
+    }
+  ]
 
   tags = {
     Component = "pipeline"

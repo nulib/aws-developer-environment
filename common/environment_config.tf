@@ -13,6 +13,11 @@ locals {
       }
     }
 
+    index = {
+      index_endpoint    = "https://${aws_opensearch_domain.search_index.endpoint}"
+      kibana_endpoint   = "https://${aws_opensearch_domain.search_index.kibana_endpoint}"
+    }
+
     search = {
       cluster_endpoint    = "https://${aws_opensearch_domain.search_index.endpoint}"
       dashboard_endpoint   = "https://${aws_opensearch_domain.search_index.kibana_endpoint}"

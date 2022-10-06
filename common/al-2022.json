@@ -1,0 +1,96 @@
+{
+  "LaunchTemplateVersions": [
+    {
+      "LaunchTemplateId": "lt-089371239e18eeef7",
+      "LaunchTemplateName": "dev-environment-al2022",
+      "VersionNumber": 1,
+      "VersionDescription": "Amazon Linux 2022 Dev Environment Template",
+      "CreateTime": "2022-10-05T21:24:49+00:00",
+      "CreatedBy": "arn:aws:sts::625046682746:assumed-role/NUL-Avalon-Admins/michael.klein@northwestern.edu",
+      "DefaultVersion": true,
+      "LaunchTemplateData": {
+        "EbsOptimized": false,
+        "BlockDeviceMappings": [
+          {
+            "DeviceName": "/dev/xvda",
+            "Ebs": {
+              "Encrypted": false,
+              "DeleteOnTermination": true,
+              "VolumeSize": 50,
+              "VolumeType": "gp3",
+              "Throughput": 125
+            }
+          }
+        ],
+        "NetworkInterfaces": [
+          {
+            "AssociatePublicIpAddress": true,
+            "DeleteOnTermination": true,
+            "DeviceIndex": 0,
+            "SubnetId": "subnet-0a898ce4fa0222b43"
+          }
+        ],
+        "ImageId": "ami-0bc441522038d8878",
+        "InstanceType": "m5.large",
+        "Monitoring": {
+          "Enabled": false
+        },
+        "Placement": {
+          "AvailabilityZone": "us-east-1b",
+          "Tenancy": "default"
+        },
+        "DisableApiTermination": false,
+        "InstanceInitiatedShutdownBehavior": "stop",
+        "TagSpecifications": [
+          {
+            "ResourceType": "instance",
+            "Tags": [
+              {
+                "Key": "Project",
+                "Value": "dev-environment"
+              }
+            ]
+          },
+          {
+            "ResourceType": "volume",
+            "Tags": [
+              {
+                "Key": "Project",
+                "Value": "dev-environment"
+              }
+            ]
+          },
+          {
+            "ResourceType": "network-interface",
+            "Tags": [
+              {
+                "Key": "Project",
+                "Value": "dev-environment"
+              }
+            ]
+          }
+        ],
+        "CapacityReservationSpecification": {
+          "CapacityReservationPreference": "open"
+        },
+        "HibernationOptions": {
+          "Configured": false
+        },
+        "MetadataOptions": {
+          "HttpTokens": "optional",
+          "HttpPutResponseHopLimit": 1,
+          "HttpEndpoint": "enabled",
+          "InstanceMetadataTags": "disabled"
+        },
+        "PrivateDnsNameOptions": {
+          "HostnameType": "ip-name",
+          "EnableResourceNameDnsARecord": true,
+          "EnableResourceNameDnsAAAARecord": false
+        },
+        "MaintenanceOptions": {
+          "AutoRecovery": "default"
+        }
+      }
+    }
+  ]
+}

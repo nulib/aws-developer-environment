@@ -20,6 +20,10 @@ provider aws {
 data "aws_caller_identity" "current_user" {}
 data "aws_region" "current" {}
 
+data "aws_secretsmanager_secret_version" "common_config" {
+  secret_id = "${local.project}/terraform/common"
+}
+
 locals {
   project       = "dev-environment"
   owner         = terraform.workspace
@@ -27,22 +31,10 @@ locals {
   iam_path      = join("/", ["", local.project, local.owner, ""])
   regional_id   = join(":", [data.aws_region.current.name, data.aws_caller_identity.current_user.id])
 
-  common_config_ssm_path = "/${local.project}/terraform/common/"
-
-  common_config = zipmap(
-    [for name in data.aws_ssm_parameters_by_path.common.names: trimprefix(name, local.common_config_ssm_path)],
-    data.aws_ssm_parameters_by_path.common.values
-  )
+  common_config = jsondecode(data.aws_secretsmanager_secret_version.common_config.secret_string)
 
   tags = merge(var.tags, {
     Project = local.project
     Owner   = local.owner
   })
 }
-
-data "aws_ssm_parameters_by_path" "common" {
-  path              = local.common_config_ssm_path
-  recursive         = true
-  with_decryption   = true
-}
-

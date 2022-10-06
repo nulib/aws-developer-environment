@@ -47,6 +47,12 @@ module "endpoints" {
       subnet_ids            = module.vpc.private_subnets
       private_dns_enabled   = true
     }
+    lambda    = {
+      service               = "lambda"
+      subnet_ids            = module.vpc.private_subnets
+      private_dns_enabled   = true
+    }
+
     logs      = { 
       service               = "logs"
       subnet_ids            = module.vpc.private_subnets

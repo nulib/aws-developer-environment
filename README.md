@@ -176,20 +176,12 @@ The resources for setting up and maintaining developer environments are in the `
 
 To create a new environment:
 
-1. Create the developer's environment:
-   ```shell
-   $ cd individual
-   $ terraform init
-   $ terraform workspace new USERID
-   $ terraform apply
-   $ profile_arn=$(terraform output -json | jq -r '.ide_instance_profile_arn.value')
-   ```
-2. Bootstrap the IDE using the instance role ARN created in the previous step:
-   ```shell
-   $ cd ..
-   $ bin/create-ide.js -u USERID -g GITHUB_USERNAME -e EMAIL -p $profile_arn
-   ```
-   **Note:** The email address provided must be the `@northwestern.edu` address associated with your NUL AWS accounts.
+```shell
+$ cd individual
+$ terraform init
+$ terraform workspace new USERID
+$ terraform apply
+```
 
 #### Environment Updates
 
@@ -204,5 +196,3 @@ Use the common/individual Terraform directories to add, update, and maintain res
    $ terraform refresh
    $ terraform destroy
    ```
-3. Delete the Cloud9 IDE environment manually using the AWS Console or `aws` CLI.
-

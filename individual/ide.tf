@@ -1,3 +1,68 @@
+data "aws_ami" "amazon_linux_2022" {
+  most_recent   = true
+  owners        = ["amazon"]
+  name_regex    = "al2022-ami-2022"
+  filter {
+    name = "architecture"
+    values = ["x86_64"]
+  }
+}
+
+resource "random_shuffle" "az" {
+  input           = local.common_config.subnets.public
+  result_count    = 1
+}
+
+data "aws_subnet" "ide_instance_subnet" {
+  id = random_shuffle.az.result[0]
+}
+
+resource "aws_instance" "ide_instance" {
+  ami             = data.aws_ami.amazon_linux_2022.image_id
+  instance_type   = var.ide_instance_type
+
+  disable_api_termination                 = true
+  instance_initiated_shutdown_behavior    = "stop"
+
+  availability_zone             = data.aws_subnet.ide_instance_subnet.availability_zone
+  subnet_id                     = data.aws_subnet.ide_instance_subnet.id
+  iam_instance_profile          = aws_iam_instance_profile.ide_instance_profile.name
+  security_groups               = [aws_security_group.ide_instance_security_group.id]
+  associate_public_ip_address   = true
+
+  ebs_block_device {
+    device_name             = "/dev/xvda"
+    encrypted               = false
+    delete_on_termination   = true
+    volume_size             = 50
+    volume_type             = "gp3"
+    throughput              = 125
+  }
+
+  user_data = file("${path.module}/support/al-2022-init.sh")
+
+  tags = merge(
+    var.user_tags[local.owner], 
+    { 
+      Name = "${local.owner}-dev-environment-ide"
+    }
+  )
+}
+
+resource "aws_security_group" "ide_instance_security_group" {
+  name    = "${local.prefix}-ide-security-group"
+  vpc_id  = local.common_config.vpc_id
+}
+
+resource "aws_security_group_rule" "ide_instance_security_group_egress" {
+  security_group_id   = aws_security_group.ide_instance_security_group.id
+  type                = "egress"
+  from_port           = 0
+  to_port             = 65535
+  cidr_blocks         = ["0.0.0.0/0"]
+  protocol            = "all"
+}
+
 resource "aws_iam_role" "ide_instance_role" {
   name    = "${local.prefix}-ide-instance-role"
   path    = local.iam_path
@@ -38,7 +103,12 @@ data "aws_iam_policy_document" "developer_access" {
     sid       = "DeveloperBucketAccess"
     effect    = "Allow"
     actions   = ["s3:*"]
-    resources = ["arn:aws:s3:::${local.owner}-*", "arn:aws:s3:::${local.owner}-*/*"]
+    resources = [
+      "arn:aws:s3:::${local.owner}-*",
+      "arn:aws:s3:::${local.owner}-*/*",
+      local.common_config.shared_bucket_arn,
+      "${local.common_config.shared_bucket_arn}/*",
+    ]
   }
 
   statement {

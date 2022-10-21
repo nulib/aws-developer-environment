@@ -1,27 +1,52 @@
 #!/bin/bash -ex
-if [[ ! -e /home/ec2-user/.init-complete ]]; then
-  DEPS="autojump bzip2-devel cronie cronie-anacron docker git gnupg2 inotify-tools jq krb5-devel libffi-devel \
-    libffi-devel libsqlite3x-devel lsof mediainfo nc ncurses-devel openssl-devel perl-Image-ExifTool postgresql13 \
-    readline-devel tmux util-linux-user zsh"
 
+if [[ ! -e /home/ec2-user/.init-complete ]]; then
   exec > >(tee /var/log/user-data.log|logger -t user-data -s 2>/dev/console) 2>&1
+
+  # Install SSM Agent and Session Manager 
   dnf install -y -d1 https://s3.amazonaws.com/ec2-downloads-windows/SSMAgent/latest/linux_amd64/amazon-ssm-agent.rpm
   dnf install -y -d1 https://s3.amazonaws.com/session-manager-downloads/plugin/latest/linux_64bit/session-manager-plugin.rpm
-  aws s3 cp s3://nul-dev-environment-tfstate/setup/RPM-GPG-KEY-EPEL-9 /etc/pki/rpm-gpg/RPM-GPG-KEY-EPEL-9
-  aws s3 cp s3://nul-dev-environment-tfstate/setup/epel.repo /etc/yum.repos.d/epel.repo
+  systemctl start amazon-ssm-agent
+  systemctl start session-manager-plugin
+
+  # Replace `fedora` user with `ec2-user`, maintaing uid and gid
+  groupmod -g 1001 fedora
+  usermod -u 1001 -g 1001 fedora
+  chown -R 1001:1001 /home/fedora
+  groupadd -g 1000 ec2-user
+  useradd -u 1000 -g 1000 -G adm,wheel,systemd-journal ec2-user
+  mkdir -p /home/ec2-user/.ssh
+  cp /home/fedora/.ssh/authorized_keys /home/ec2-user/.ssh/authorized_keys
+  chown -R 1000:1000 /home/ec2-user
+  sed -i s/^fedora/ec2-user/ /etc/sudoers.d/90-cloud-init-users
+  userdel -r fedora
+
+  # Install Docker CE and give ec2-user permission to use it
+  dnf config-manager --add-repo https://download.docker.com/linux/fedora/docker-ce.repo
+  dnf install -y docker-ce docker-ce-cli containerd.io docker-compose-plugin
+  systemctl enable --now docker
+  usermod -a -G docker ec2-user
+
+  # Install dev and runtime dependencies
+  DEPS="autoconf autojump-zsh automake bzip2 bzip2-devel cronie cronie-anacron curl git gnupg2 inotify-tools jq \
+    krb5-devel libffi-devel libffi-devel libsqlite3x-devel lsof mediainfo nc ncurses-devel openssl-devel \
+    perl-Image-ExifTool postgresql readline-devel tmux util-linux-user zsh"
   dnf group install -y "Development Tools"
   dnf install -y -d1 --allowerasing $DEPS
+  systemctl enable --now crond
+
+  # Install ffmpeg
   curl -s http://nul-public.s3.amazonaws.com/ffmpeg.zip -o /tmp/ffmpeg.zip
   unzip -qo /tmp/ffmpeg.zip -d /usr/local
   rm -f /tmp/ffmpeg.zip
-  chsh -s /usr/bin/zsh ec2-user
-  usermod -a -G docker ec2-user
-  systemctl enable --now crond
-  systemctl enable --now docker
-  if [[ -e /usr/libexec/docker/cli-plugins/buildx ]]; then
-    ln -fs /usr/libexec/docker/cli-plugins/buildx /usr/libexec/docker/cli-plugins/docker-buildx
-  fi
 
+  # Install AWS CLI v2
+  curl "https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip" -o "/tmp/awscliv2.zip"
+  unzip -qo /tmp/awscliv2.zip -d /tmp
+  /tmp/aws/install
+  rm -rf /tmp/aws /tmp/awscliv2.zip
+
+  # Read instance tags and configuration secrets and set hostname
   INSTANCE_ID=$(curl -s http://169.254.169.254/latest/meta-data/instance-id)
   TAG_DATA=$(aws ec2 describe-tags --filters Name=resource-id,Values=$INSTANCE_ID)
   COMMON_CONFIG=$(aws secretsmanager get-secret-value --secret-id "dev-environment/terraform/common" --query "SecretString" --output text)
@@ -33,6 +58,7 @@ if [[ ! -e /home/ec2-user/.init-complete ]]; then
   OWNER=$(get_tag Owner)
   hostname "${OWNER}.dev.rdc.library.northwestern.edu"
 
+  # Create and run user setup script
   cat > /tmp/user_setup.sh <<'__END__'
 #!/bin/bash -ex
 GITHUB_ID=$1
@@ -77,6 +103,7 @@ rm -rf $HOME/.c9
 __END__
 
   chmod 0755 /tmp/user_setup.sh
+  chsh -s /usr/bin/zsh ec2-user
   sudo -Hiu ec2-user /tmp/user_setup.sh $(get_tag GitHubID)
   chown -R ec2-user:ec2-user ~ec2-user/.ssh
   echo "* * * * * root /home/ec2-user/.ide/stop-if-inactive.sh" > /etc/cron.d/auto-shutdown

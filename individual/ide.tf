@@ -1,7 +1,7 @@
-data "aws_ami" "amazon_linux_2022" {
+data "aws_ami" "fedora_linux" {
   most_recent   = true
-  owners        = ["amazon"]
-  name_regex    = "al2022-ami-2022"
+  owners        = [125523088429]
+  name_regex    = "^Fedora-Cloud-Base-36-.+-gp2-.+$"
   filter {
     name = "architecture"
     values = ["x86_64"]
@@ -18,7 +18,7 @@ data "aws_subnet" "ide_instance_subnet" {
 }
 
 resource "aws_instance" "ide_instance" {
-  ami             = data.aws_ami.amazon_linux_2022.image_id
+  ami             = data.aws_ami.fedora_linux.image_id
   instance_type   = var.ide_instance_type
 
   disable_api_termination                 = true
@@ -31,7 +31,7 @@ resource "aws_instance" "ide_instance" {
   associate_public_ip_address   = true
 
   ebs_block_device {
-    device_name             = "/dev/xvda"
+    device_name             = "/dev/sda1"
     encrypted               = false
     delete_on_termination   = true
     volume_size             = 50
@@ -39,7 +39,7 @@ resource "aws_instance" "ide_instance" {
     throughput              = 125
   }
 
-  user_data = file("${path.module}/support/al-2022-init.sh")
+  user_data = file("${path.module}/support/fedora-36-init.sh")
 
   tags = merge(
     var.user_tags[local.owner], 

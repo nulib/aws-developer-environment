@@ -139,7 +139,7 @@ module "pipeline_lambda" {
   source_path = [
     {
       path = "${var.lambda_path}/${each.value.source}",
-      commands = [ "npm ci --only prod --no-bin-links", ":zip" ]
+      commands = [ "npm ci --only prod", ":zip" ]
     }
   ]
 

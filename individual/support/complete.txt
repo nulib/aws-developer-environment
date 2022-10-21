@@ -1,9 +1,0 @@
-
-Environment creation complete. You should now create the environment(s) to support this infrastructure:
-
-$ cd environment
-$ terraform init
-$ terraform workspace select {netId}-dev || terraform workspace new {netId}-dev
-$ terraform apply
-
-Repeat the workspace and apply steps for additional environments (e.g., test) as needed

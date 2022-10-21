@@ -1,14 +1,21 @@
-resource "aws_ssm_parameter" "output_parameter" {
-  for_each = {
+resource "aws_secretsmanager_secret" "output_parameter" {
+  name = "${local.project}/terraform/common"
+}
+
+resource "aws_secretsmanager_secret_version" "output_parameter" {
+  secret_id = aws_secretsmanager_secret.output_parameter.id
+  secret_string = jsonencode({
+    elasticsearch_snapshot_role  = aws_iam_role.search_snapshot_bucket_access.arn
     fixity_function_arn          = module.execute_fixity_function.lambda_function_arn
     ide_uptime_alert_topic       = aws_sns_topic.ide_uptime_alert.arn
+    shared_bucket_arn            = aws_s3_bucket.dev_environment_shared_bucket.arn
     vpc_id                       = module.vpc.vpc_id
-    elasticsearch_snapshot_role  = aws_iam_role.search_snapshot_bucket_access.arn
-  }
 
-  name        = "/${local.project}/terraform/common/${each.key}"
-  type        = "String"
-  value       = each.value
+    subnets = {
+      public  = module.vpc.public_subnets
+      private = module.vpc.private_subnets
+    }
+  })
 }
 
 output "search_snapshot_configuration" {

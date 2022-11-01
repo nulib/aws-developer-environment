@@ -82,8 +82,8 @@ resource "aws_ecs_service" "ldap" {
 
   network_configuration {
     security_groups  = [aws_security_group.ldap.id]
-    subnets          = module.vpc.private_subnets
-    assign_public_ip = false
+    subnets          = module.vpc.public_subnets
+    assign_public_ip = true
   }
 
   service_registries {

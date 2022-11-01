@@ -36,23 +36,21 @@ module "endpoints" {
       service           = "s3"
       service_type      = "Gateway"
     }
-
-    ecr_api   = { 
-      service               = "ecr.api"
-      subnet_ids            = module.vpc.private_subnets
-      private_dns_enabled   = true
-    }
-    ecr_dkr   = { 
-      service               = "ecr.dkr"
-      subnet_ids            = module.vpc.private_subnets
-      private_dns_enabled   = true
-    }
+#    ecr_api   = { 
+#      service               = "ecr.api"
+#      subnet_ids            = module.vpc.private_subnets
+#      private_dns_enabled   = true
+#    }
+#    ecr_dkr   = { 
+#      service               = "ecr.dkr"
+#      subnet_ids            = module.vpc.private_subnets
+#      private_dns_enabled   = true
+#    }
     lambda    = {
       service               = "lambda"
       subnet_ids            = module.vpc.private_subnets
       private_dns_enabled   = true
     }
-
     logs      = { 
       service               = "logs"
       subnet_ids            = module.vpc.private_subnets

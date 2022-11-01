@@ -30,7 +30,7 @@ if [[ ! -e /home/ec2-user/.init-complete ]]; then
   # Install dev and runtime dependencies
   DEPS="autoconf autojump-zsh automake bzip2 bzip2-devel cronie cronie-anacron curl git gnupg2 inotify-tools jq \
     krb5-devel libffi-devel libffi-devel libsqlite3x-devel lsof mediainfo nc ncurses-devel openssl-devel \
-    perl-Image-ExifTool postgresql readline-devel tmux util-linux-user zsh"
+    perl-Image-ExifTool postgresql readline-devel tmux util-linux-user vim zsh"
   dnf group install -y "Development Tools"
   dnf install -y -d1 --allowerasing $DEPS
   systemctl enable --now crond

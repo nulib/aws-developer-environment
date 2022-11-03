@@ -28,8 +28,8 @@ if [[ ! -e /home/ec2-user/.init-complete ]]; then
   usermod -a -G docker ec2-user
 
   # Install dev and runtime dependencies
-  DEPS="autoconf autojump-zsh automake bzip2 bzip2-devel cronie cronie-anacron curl git gnupg2 inotify-tools jq \
-    krb5-devel libffi-devel libffi-devel libsqlite3x-devel lsof mediainfo nc ncurses-devel openssl-devel \
+  DEPS="autoconf autojump-zsh automake bzip2 bzip2-devel cronie cronie-anacron curl gcc-c++ git gnupg2 inotify-tools \
+    jq krb5-devel libffi-devel libpq-devel libsqlite3x-devel lsof mediainfo nc ncurses-devel openssl-devel perl \
     perl-Image-ExifTool postgresql readline-devel tmux util-linux-user vim zsh"
   dnf group install -y "Development Tools"
   dnf install -y -d1 --allowerasing $DEPS
@@ -45,6 +45,10 @@ if [[ ! -e /home/ec2-user/.init-complete ]]; then
   unzip -qo /tmp/awscliv2.zip -d /tmp
   /tmp/aws/install
   rm -rf /tmp/aws /tmp/awscliv2.zip
+
+  # Install MC
+  curl -o /usr/local/bin/mc https://dl.min.io/client/mc/release/linux-amd64/mc
+  chmod 0755 /usr/local/bin/mc
 
   # Read instance tags and configuration secrets and set hostname
   INSTANCE_ID=$(curl -s http://169.254.169.254/latest/meta-data/instance-id)
@@ -72,7 +76,7 @@ for f in authorized_keys known_hosts; do
 done
 chmod 0600 $HOME/.ssh/known_hosts
 set +e
-  git clone https://github.com/asdf-vm/asdf.git $HOME/.asdf --branch v0.9.0
+  git clone https://github.com/asdf-vm/asdf.git $HOME/.asdf --branch v0.10.2
   git clone https://github.com/nulib/nul-rdc-devtools $HOME/.nul-rdc-devtools
   source $HOME/.asdf/asdf.sh
   $HOME/.nul-rdc-devtools/bin/backup-ide restore

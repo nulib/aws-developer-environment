@@ -47,6 +47,10 @@ resource "aws_instance" "ide_instance" {
       Name = "${local.owner}-dev-environment-ide"
     }
   )
+
+  lifecycle {
+    ignore_changes = [ami, security_groups, user_data]
+  }
 }
 
 resource "aws_security_group" "ide_instance_security_group" {

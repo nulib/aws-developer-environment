@@ -23,6 +23,52 @@ resource "aws_security_group_rule" "samvera_stack_service_ingress" {
   cidr_blocks         = ["0.0.0.0/0"]
 }
 
+resource "aws_s3_bucket" "fedora_binaries" {
+  bucket      = "${local.project}-shared-fcrepo-binaries"
+}
+
+resource "aws_iam_user" "fedora_binary_bucket_user" {
+  name = "${local.project}-shared-fcrepo"
+  path = "/system/"
+}
+
+resource "aws_iam_access_key" "fedora_binary_bucket_access_key" {
+  user = aws_iam_user.fedora_binary_bucket_user.name
+}
+
+resource "aws_iam_user_policy" "fedora_binary_bucket_user_policy" {
+  name = "${local.project}-shared-fcrepo"
+  user = aws_iam_user.fedora_binary_bucket_user.name
+
+  policy = jsonencode({
+    Version = "2012-10-17"
+    Statement = [
+      {
+        Sid    = "1"
+        Effect = "Allow"
+        Action = ["s3:*"]
+
+        Resource = [
+          "${aws_s3_bucket.fedora_binaries.arn}",
+          "${aws_s3_bucket.fedora_binaries.arn}/*"
+        ]
+      }
+    ]
+  })
+}
+
+locals {
+  fedora_java_opts = {
+    "fcrepo.postgresql.host" = module.aurora_postgresql.cluster_endpoint
+    "fcrepo.postgresql.port" = module.aurora_postgresql.cluster_port
+    "fcrepo.postgresql.username" = module.aurora_postgresql.cluster_master_username
+    "fcrepo.postgresql.password" = module.aurora_postgresql.cluster_master_password
+    "aws.accessKeyId" = aws_iam_access_key.fedora_binary_bucket_access_key.id
+    "aws.secretKey" = aws_iam_access_key.fedora_binary_bucket_access_key.secret
+    "aws.bucket" = aws_s3_bucket.fedora_binaries.id
+  }
+}
+
 resource "aws_ecs_task_definition" "samvera_stack" {
   family = "${local.project}-samvera-stack"
   
@@ -32,6 +78,16 @@ resource "aws_ecs_task_definition" "samvera_stack" {
       image               = "${data.aws_caller_identity.current_user.id}.dkr.ecr.us-east-1.amazonaws.com/fcrepo4:4.7.5-s3multipart"
       essential           = true
       cpu                 = 768
+      environment = [
+        { 
+          name  = "MODESHAPE_CONFIG",
+          value = "classpath:/config/jdbc-postgresql-s3/repository.json"
+        },
+        {
+          name  = "JAVA_OPTIONS",
+          value = join(" ", [for key, value in local.fedora_java_opts : "-D${key}=${value}"])
+        }
+      ]
       portMappings = [
         { hostPort = 8080, containerPort = 8080 }
       ]
@@ -50,6 +106,7 @@ resource "aws_ecs_task_definition" "samvera_stack" {
       cpu                 = 1024
       command             = ["solr", "-f", "-cloud"]
       environment = [
+        { name = "KAFKA_OPTS",      value = "-Dzookeeper.4lw.commands.whitelist=*" },
         { name = "SOLR_HEAP",       value = "${1024 * 0.9765625}m" }
       ]
       portMappings = [
@@ -72,6 +129,9 @@ resource "aws_ecs_task_definition" "samvera_stack" {
       portMappings = [
         { hostPort = 6379, containerPort = 6379 }
       ]
+      mountPoints = [
+        { sourceVolume = "fcrepo-data", containerPath = "/data" }
+      ]
       readonlyRootFilesystem = false
       healthCheck = {
         command  = ["CMD-SHELL", "redis-cli ping"]
@@ -81,6 +141,10 @@ resource "aws_ecs_task_definition" "samvera_stack" {
       }
     }
   ])
+
+  volume {
+    name = "fcrepo-data"
+  }
 
   task_role_arn            = data.aws_iam_role.task_execution_role.arn
   execution_role_arn       = data.aws_iam_role.task_execution_role.arn

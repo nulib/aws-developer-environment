@@ -37,8 +37,8 @@
   - Using the [AWS Cloud9 Console](https://us-east-1.console.aws.amazon.com/cloud9/home/shared)
     - The environment is *probably* listed under **Shared with you** rather than **Your environments**
   - Directly via SSH at `DEV_ID.dev.rdc.library.northwestern.edu`
-- This hostname can also be used to connect a [Virtual Studio Code Remote SSH](https://code.visualstudio.com/docs/remote/ssh) session
-  - The Remote SSH extension's Connect Timeout setting should be changed from the default (15 seconds) to at least 60 seconds.
+- This hostname can also be used to connect a [Visual Studio Code Remote SSH](https://code.visualstudio.com/docs/remote/ssh) session
+  - The Remote SSH extension's Connect Timeout setting should be changed from the default (15 seconds) to at least 120 seconds.
 - For convenience, you can create one or more aliases in `~/.ssh/config` by copying the `*.dev.rdc.library.northwestern.edu` stanza and adding a `HostName`:
   ```
   Host dev
@@ -60,13 +60,14 @@
 - Several tools come preinstalled, either by AWS or by the IDE [init script](individual/support/cloud9-init.sh):
   - [`asdf`](https://asdf-vm.com)
   - [`aws`](https://aws.amazon.com/cli/)
+  - [`direnv`](https://direnv.net/)
   - [`exiftool`](https://exiftool.org)
   - [`jq`](https://stedolan.github.io/jq/manual/)
   - [`mediainfo`](https://mediaarea.net/en/MediaInfo)
   - [`psql`](https://www.postgresql.org/docs/current/app-psql.html)
   - [`tmux`](https://github.com/tmux/tmux/wiki)
 - Developer VMs are persistent, but also easy to tear down and rebuild in minutes. Meadow data (S3/DB/OpenSearch) will survive a reset,though your configurations and customizations will be gone. Don't hesitate to ask for a reset if you need one.
-- Thanks to the `ForwardAgent yes` line in the SSH config above, your local SSH identities will be forwarded/delegated to the remote machine for the duration of your login session. That means you'll be able to automatically authenticate to servers that use public key authentication (e.g., GitHub) without having to copy your private keys around.
+- Thanks to the `ForwardAgent yes` line in the SSH config above, your local SSH identities will be forwarded/delegated to the remote machine for the duration of your login session. That means you'll be able to automatically authenticate to servers that use public key authentication (e.g., GitHub) without having to copy your private keys around. See [SSH Key Forwarding](#ssh-key-forwarding) below for details and troubleshooting.
 - By default, your  have read access to everything in the staging environment, and full access to resources required for "normal" development work (e.g., your own S3 buckets)
   - [`aws-adfs`](http://docs.rdc.library.northwestern.edu/2._Developer_Guides/Environment_and_Tools/Using-aws-adfs/#usage) is also installed and configured in case you need to assume a different role (e.g., to run a Terraform or SAM deploy that creates resources you don't have access to by default)
   - Export the correct `AWS_PROFILE` and log in as usual to assume one of your regular AWS roles
@@ -124,13 +125,18 @@ cat ~/.zshrc.pre-oh-my-zsh >> ~/.zshrc
 
 #### Convenience Scripts
 
+- `app-environment` - Write an `.envrc` file (for use with [`direnv`](https://direnv.net/)) for a given app to the local directory
+  - `app-environment avr` - Write AVR's dev configuration
 - `clean-s3` - purge all data from a set of s3 buckets, e.g.:
-  - `clean-s3 dev -y` - delete everything from your dev buckets
+  - `clean-s3 --app meadow dev -y` - delete everything from your meadow dev buckets
   - Without the `-y`, it displays a dry run showing what *would* be deleted if `-y` were present
 - `dbconnect` - connect to your `dev` database via `psql`
 - `es-proxy` - set up a tunnel to the Elasticsearch index
   - `es-proxy start` - start the proxy
   - `es-proxy stop` - stop the proxy
+- `https-proxy` - Run an SSL proxy to a local HTTP service
+  - `https-proxy start 3002 3000` - start proxying `https://YOUR_HOSTNAME:3002/` to `http://localhost:3000/`
+  - `https-proxy stop 3002` - stop the proxy on port 3002
 - `sg` - open and close ports, e.g.:
   - `sg open <IPADDR | IPRANGE | all> PORT` - allow access on port `PORT` from a single source IP address, a source IP range (expressed in CIDR notation), or the entire Internet
   - `sg close <IPADDR | IPRANGE | all> PORT` - close a previously opened port. The address or range must exactly match what was specified on `open`.
@@ -155,6 +161,30 @@ Each developer VM will shut down if no *keep-alive* condition has been met for a
 Since AWS does not charge for stopped VMs, it's important to remember to close VS Code and Cloud9 Console sessions when they're not actively being used.
 
 More keep-alive conditions (e.g., active `tmux` sessions) can be added if needed. Suggestions are welcome.
+
+#### SSH Key Forwarding
+
+The developer environment forwards SSH authentication requests back to your local system, where the SSH Agent process can respond to them. This allows you to do things like authenticate to GitHub without having to move your private keys onto possibly untrusted servers.
+
+The local SSH Agent only caches keys for a limited time, and if your session lasts beyond the TTL period, you may receive an error such as the following:
+
+```
+$ git push origin
+git@github.com: Permission denied (publickey).
+fatal: Could not read from remote repository.
+
+Please make sure you have the correct access rights
+and the repository exists.
+```
+
+If this happens, run `ssh-add -l` on the *remote* system and proceed according to the output:
+- **Output:** `Could not open a connection to your authentication agent.`
+  **Action:** Close your remote terminal (just the terminal, not the whole VS Code window), open a new one, and try this step again.
+- **Output:** `The agent has no identities.`
+- **Action:**
+  1. Open a *local* terminal and run `ssh-add`. You may be prompted to enter your key's passphrase, if it has one.
+  2. Run `ssh-add -l` on the local system.
+  3. Run `ssh-add -l` on the remote system again and see if the list of keys matches the list from Step 2 above.
 
 ## Environment Setup & Maintenance
 

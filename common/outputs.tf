@@ -9,6 +9,7 @@ resource "aws_secretsmanager_secret_version" "output_parameter" {
     fixity_function_arn          = module.execute_fixity_function.lambda_function_arn
     ide_uptime_alert_topic       = aws_sns_topic.ide_uptime_alert.arn
     shared_bucket_arn            = aws_s3_bucket.dev_environment_shared_bucket.arn
+    transcode_role               = aws_iam_role.transcode_role.arn
     vpc_id                       = module.vpc.vpc_id
 
     subnets = {

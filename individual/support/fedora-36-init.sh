@@ -27,18 +27,17 @@ if [[ ! -e /home/ec2-user/.init-complete ]]; then
   systemctl enable --now docker
   usermod -a -G docker ec2-user
 
+  # Install RPM Fusion repos
+  dnf install -y https://download1.rpmfusion.org/free/fedora/rpmfusion-free-release-$(rpm -E %fedora).noarch.rpm
+  dnf install -y https://download1.rpmfusion.org/nonfree/fedora/rpmfusion-nonfree-release-$(rpm -E %fedora).noarch.rpm
+
   # Install dev and runtime dependencies
-  DEPS="autoconf autojump-zsh automake bzip2 bzip2-devel cronie cronie-anacron curl gcc-c++ git gnupg2 inotify-tools \
-    jq krb5-devel libffi-devel libpq-devel libsqlite3x-devel lsof mediainfo nc ncurses-devel openssl-devel perl \
-    perl-Image-ExifTool postgresql readline-devel tmux util-linux-user vim zsh"
+  DEPS="autoconf autojump-zsh automake bzip2 bzip2-devel cronie cronie-anacron curl ffmpeg-free gcc-c++ git gnupg2 
+    inotify-tools jq krb5-devel libffi-devel libpq-devel libsqlite3x-devel lsof mediainfo nc ncurses-devel 
+    openssl-devel perl perl-Image-ExifTool postgresql readline-devel tmux util-linux-user vim zsh"
   dnf group install -y "Development Tools"
   dnf install -y -d1 --allowerasing $DEPS
   systemctl enable --now crond
-
-  # Install ffmpeg
-  curl -s http://nul-public.s3.amazonaws.com/ffmpeg.zip -o /tmp/ffmpeg.zip
-  unzip -qo /tmp/ffmpeg.zip -d /usr/local
-  rm -f /tmp/ffmpeg.zip
 
   # Install AWS CLI v2
   curl "https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip" -o "/tmp/awscliv2.zip"

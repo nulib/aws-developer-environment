@@ -95,12 +95,6 @@ data "aws_iam_policy_document" "developer_access" {
       variable    = "aws:ResourceTag/Project"
       values      = [local.project]
     }
-
-    condition {
-      test        = "StringEquals"
-      variable    = "aws:ResourceTag/Owner"
-      values      = [local.owner]
-    }
   }
 
   statement {
@@ -110,6 +104,8 @@ data "aws_iam_policy_document" "developer_access" {
     resources = [
       "arn:aws:s3:::${local.owner}-*",
       "arn:aws:s3:::${local.owner}-*/*",
+      "arn:aws:s3:::${local.project}-shared-*",
+      "arn:aws:s3:::${local.project}-shared-*/*",
       local.common_config.shared_bucket_arn,
       "${local.common_config.shared_bucket_arn}/*",
     ]
@@ -163,10 +159,29 @@ data "aws_iam_policy_document" "developer_access" {
   }
 
   statement {
-    sid       = "DeveloperOpensearchAccess"
+    sid       = "DeveloperMediaConvert"
+    effect    = "Allow"
+    actions   = [
+      "events:PutRule",
+      "events:PutTargets",
+      "logs:*",
+      "mediaconvert:CancelJob",
+      "mediaconvert:CreateJob",
+      "mediaconvert:DescribeEndpoints",
+      "mediaconvert:GetJob",
+      "mediaconvert:GetQueue"
+    ]
+    resources = ["*"]
+  }
+
+  statement {
+    sid       = "DeveloperPassRoles"
     effect    = "Allow"
     actions   = ["iam:Passrole"]
-    resources = [local.common_config.elasticsearch_snapshot_role]
+    resources = [
+      local.common_config.elasticsearch_snapshot_role,
+      local.common_config.transcode_role
+    ]
   }
 
   statement {

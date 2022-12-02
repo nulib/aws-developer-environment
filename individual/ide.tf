@@ -168,6 +168,24 @@ data "aws_iam_policy_document" "developer_access" {
     actions   = ["iam:Passrole"]
     resources = [local.common_config.elasticsearch_snapshot_role]
   }
+
+  statement {
+    sid       = "DeveloperECSAccess"
+    effect    = "Allow"
+    actions   = [
+      "ecs:Describe*",
+      "ecs:List*",
+      "ecs:RunTask",
+      "ecs:StartTask",
+      "ecs:StopTask",
+      "ecs:UpdateService"
+    ]
+    resources = [
+      "arn:aws:ecs:us-east-1:625046682746:cluster/dev-environment",
+      "arn:aws:ecs:us-east-1:625046682746:service/dev-environment/*",
+      "arn:aws:ecs:us-east-1:625046682746:task/dev-environment/*",
+    ]
+  }
 }
 
 resource "aws_iam_policy" "developer_access" {

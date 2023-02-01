@@ -42,7 +42,7 @@ resource "aws_instance" "ide_instance" {
   user_data = file("${path.module}/support/fedora-36-init.sh")
 
   tags = merge(
-    var.user_tags[local.owner], 
+    lookup(var.user_tags, local.owner, {}),
     { 
       Name = "${local.owner}-dev-environment-ide"
     }

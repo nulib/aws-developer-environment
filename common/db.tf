@@ -25,11 +25,6 @@ module "aurora_postgresql" {
 
   db_parameter_group_family     = "aurora-postgresql14"
   db_parameter_group_parameters = [ 
-    {
-      name            = "max_locks_per_transaction "
-      value           = 2048
-      apply_method    = "pending-reboot"
-    }
   ]
 }
 

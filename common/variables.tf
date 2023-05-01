@@ -8,6 +8,10 @@ variable "lambda_path" {
   default = "../../meadow/lambdas"
 }
 
+variable "staging_vpc_id" {
+  type    = string
+}
+
 # Secrets
 
 variable "config_secrets" {

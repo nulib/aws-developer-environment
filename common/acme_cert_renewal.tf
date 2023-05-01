@@ -161,8 +161,8 @@ resource "aws_cloudwatch_event_rule" "cert_renewal" {
   name        = "${local.project}-renew-developer-certificate"
   description = "Renew developer certificate every 45 days"
 
-  # Renew cert on the 4th day of every even-numbered month
-  schedule_expression = "cron(0 7 4 FEB,APR,JUN,AUG,OCT,DEC ? *)"
+  # Renew cert every 75 days to stay ahead of the 90 day expiration
+  schedule_expression = "rate(75 days)"
 }
 
 data "aws_ecs_cluster" "default" {

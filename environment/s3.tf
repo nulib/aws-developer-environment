@@ -6,6 +6,17 @@ locals {
 resource "aws_s3_bucket" "meadow_buckets" {
   for_each = toset(local.buckets)
   bucket   = "${local.prefix}-${each.key}"
+  
+}
+
+resource "aws_s3_bucket_public_access_block" "meadow_buckets" {
+  for_each = toset(local.buckets)
+  bucket   = aws_s3_bucket.meadow_buckets[each.key].id
+
+  block_public_acls       = true
+  block_public_policy     = each.key != "pyramids"
+  ignore_public_acls      = true
+  restrict_public_buckets = each.key != "pyramids"
 }
 
 resource "aws_s3_bucket_cors_configuration" "meadow_uploads" {

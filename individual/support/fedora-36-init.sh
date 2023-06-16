@@ -32,10 +32,10 @@ if [[ ! -e /home/ec2-user/.init-complete ]]; then
   dnf install -y https://download1.rpmfusion.org/nonfree/fedora/rpmfusion-nonfree-release-$(rpm -E %fedora).noarch.rpm
 
   # Install dev and runtime dependencies
-  DEPS="autoconf autojump-zsh automake bzip2 bzip2-devel cronie cronie-anacron curl direnv ffmpeg gcc-c++ 
-    git gnupg2 inotify-tools jq krb5-devel libffi-devel libpq-devel libsqlite3x-devel lsof mediainfo nc 
-    ncurses-devel openssl-devel perl perl-Image-ExifTool postgresql readline-devel tmux util-linux-user vim 
-    zsh"
+  DEPS="autoconf autojump-zsh automake bzip2 bzip2-devel conda cronie cronie-anacron curl direnv ffmpeg 
+    fop gcc-c++ git gnupg2 inotify-tools jq krb5-devel libffi-devel libpq-devel libsqlite3x-devel libxslt 
+    lsof mediainfo nc ncurses-devel openssl-devel perl perl-Image-ExifTool postgresql readline-devel tmux 
+    util-linux-user vim zsh"
   dnf group install -y "Development Tools"
   dnf install -y -d1 --allowerasing $DEPS
   systemctl enable --now crond
@@ -79,6 +79,7 @@ set +e
   git clone https://github.com/asdf-vm/asdf.git $HOME/.asdf --branch v0.10.2
   git clone https://github.com/nulib/nul-rdc-devtools $HOME/.nul-rdc-devtools
   source $HOME/.asdf/asdf.sh
+  conda config --append channels conda-forge
   $HOME/.nul-rdc-devtools/bin/backup-ide restore
 set -e
 if [[ ! -e $HOME/.zprofile ]]; then cat > $HOME/.zprofile <<'__EOC__'; fi

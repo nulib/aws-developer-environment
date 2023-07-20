@@ -2,6 +2,10 @@
 
 ## Developers
 
+### Prerequisites
+
+- Make sure you have [`aws sso login`](http://docs.rdc.library.northwestern.edu/2._Developer_Guides/Environment_and_Tools/AWS-Authentication/) set up properly on your local system.
+
 ### One-Time Setup
 
 1. Make sure your `~/.bash_profile` file exports the path to your `aws` executable. For example:
@@ -18,7 +22,7 @@
    ```shell
    bash <(curl -s https://raw.githubusercontent.com/nulib/aws-developer-environment/main/individual/support/dev_environment_profile.sh)
    ```
-   (You may be prompted to log into AWS by `aws-adfs`.)
+   (You may be prompted to log into AWS by the SSO login handler.)
 3. Copy the [SSH Proxy Script](individual/support/nul-ssm-proxy.sh) to the `~/.ssh` directory of the user who will be using the new environment.
 4. `chmod 0755 ~/.ssh/nul-ssm-proxy.sh`
 5. Add the following stanza to the user's `~/.ssh/config`:
@@ -69,7 +73,7 @@
 - Developer VMs are persistent, but also easy to tear down and rebuild in minutes. Meadow data (S3/DB/OpenSearch) will survive a reset,though your configurations and customizations will be gone. Don't hesitate to ask for a reset if you need one.
 - Thanks to the `ForwardAgent yes` line in the SSH config above, your local SSH identities will be forwarded/delegated to the remote machine for the duration of your login session. That means you'll be able to automatically authenticate to servers that use public key authentication (e.g., GitHub) without having to copy your private keys around. See [SSH Key Forwarding](#ssh-key-forwarding) below for details and troubleshooting.
 - By default, your  have read access to everything in the staging environment, and full access to resources required for "normal" development work (e.g., your own S3 buckets)
-  - [`aws-adfs`](http://docs.rdc.library.northwestern.edu/2._Developer_Guides/Environment_and_Tools/Using-aws-adfs/#usage) is also installed and configured in case you need to assume a different role (e.g., to run a Terraform or SAM deploy that creates resources you don't have access to by default)
+  - [`aws sso`](http://docs.rdc.library.northwestern.edu/2._Developer_Guides/Environment_and_Tools/AWS-Authentication/) is also installed and configured in case you need to assume a different role (e.g., to run a Terraform or SAM deploy that creates resources you don't have access to by default)
   - Export the correct `AWS_PROFILE` and log in as usual to assume one of your regular AWS roles
   - To return to the default instance role, simply `export AWS_PROFILE=default` or `unset AWS_PROFILE`
 
@@ -179,7 +183,13 @@ and the repository exists.
 
 If this happens, run `ssh-add -l` on the *remote* system and proceed according to the output:
 - **Output:** `Could not open a connection to your authentication agent.`
-  **Action:** Close your remote terminal (just the terminal, not the whole VS Code window), open a new one, and try this step again.
+  **Action:** 
+  1. Try running `export SSH_AUTH_SOCK=$(ls -c /run/user/1000/vscode-ssh-auth-sock-* | head -1)` on the remote to 
+     refresh the socket connection between the local and remote systems. Try `ssh-add -l` again.
+  2. If it still can't connect, close your remote terminal (just the terminal, not the whole VS Code window), open a new one, 
+     and try this step again.
+  3. If that still doesn't solve the problem, try opening the VS Code command panel (Cmd+Shift+P) and issue the **Developer: Reload 
+     window** command.
 - **Output:** `The agent has no identities.`
 - **Action:**
   1. Open a *local* terminal and run `ssh-add`. You may be prompted to enter your key's passphrase, if it has one.
@@ -188,7 +198,7 @@ If this happens, run `ssh-add -l` on the *remote* system and proceed according t
 
 ## Environment Setup & Maintenance
 
-All of the following steps require you to have your `AWS_PROFILE` set to a configured profile with full admin access to the NUL staging environment (e.g., `staging-admin`). If the specified profile is linked to an ADFS role, you'll also need to make sure you're [logged in](http://docs.rdc.library.northwestern.edu/2._Developer_Guides/Environment_and_Tools/Using-aws-adfs/#usage).
+All of the following steps require you to have your `AWS_PROFILE` set to a configured profile with full admin access to the NUL staging environment (e.g., `staging-admin`). If the specified profile is linked to an ADFS role, you'll also need to make sure you're [logged in](http://docs.rdc.library.northwestern.edu/2._Developer_Guides/Environment_and_Tools/AWS-Authentication/).
 
 ### Common Infrastructure
 

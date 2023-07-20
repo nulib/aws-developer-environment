@@ -93,7 +93,6 @@ set +e
     asdf global python 3.10.5
     asdf reshim
   fi
-  pip install aws-adfs
 set -e
 mkdir -p $HOME/.ide
 echo SHUTDOWN_TIMEOUT=30 > $HOME/.ide/autoshutdown-configuration

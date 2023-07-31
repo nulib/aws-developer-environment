@@ -9,7 +9,9 @@ locals {
 
     dc_api = {
       v2 = {
-        base_url = "https://dcapi.rdc-staging.library.northwestern.edu"
+        base_url            = var.dc_api_url
+        api_token_secret    = var.dc_api_secret
+        api_token_ttl       = var.dc_api_ttl 
       }
     }
 

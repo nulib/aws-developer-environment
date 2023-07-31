@@ -33,3 +33,15 @@ variable "ssl_key_file" {
 variable "acme_cert_state_store" {
   type    = map(string)
 }
+
+variable "dc_api_url" {
+  type    = string
+}
+
+variable "dc_api_ttl" {
+  type    = number
+}
+
+variable "dc_api_secret" {
+  type    = string
+}

@@ -15,6 +15,10 @@ locals {
       }
     }
 
+    iiif = {
+      distribution_id = data.aws_cloudfront_distribution.iiif_server.id
+    }
+
     index = {
       index_endpoint    = "https://${aws_opensearch_domain.search_index.endpoint}"
       kibana_endpoint   = "https://${aws_opensearch_domain.search_index.kibana_endpoint}"

@@ -49,7 +49,7 @@ resource "aws_instance" "ide_instance" {
   )
 
   lifecycle {
-    ignore_changes = [ami, security_groups, user_data]
+    ignore_changes = all
   }
 }
 
@@ -199,6 +199,15 @@ data "aws_iam_policy_document" "developer_access" {
       "arn:aws:ecs:us-east-1:625046682746:cluster/dev-environment",
       "arn:aws:ecs:us-east-1:625046682746:service/dev-environment/*",
       "arn:aws:ecs:us-east-1:625046682746:task/dev-environment/*",
+    ]
+  }
+
+  statement {
+    sid       = "DeveloperCloudFrontDistributionAccess"
+    effect    = "Allow"
+    actions   = ["cloudfront:CreateInvalidation"]
+    resources = [
+      "arn:aws:cloudfront:${local.regional_id}::distribution/${local.common_config.iiif_distribution_id}"
     ]
   }
 }

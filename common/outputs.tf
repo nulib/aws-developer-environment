@@ -8,6 +8,7 @@ resource "aws_secretsmanager_secret_version" "output_parameter" {
     elasticsearch_snapshot_role  = aws_iam_role.search_snapshot_bucket_access.arn
     fixity_function_arn          = module.execute_fixity_function.lambda_function_arn
     ide_uptime_alert_topic       = aws_sns_topic.ide_uptime_alert.arn
+    iiif_distribution_id         = data.aws_cloudfront_distribution.iiif_server.id
     shared_bucket_arn            = aws_s3_bucket.dev_environment_shared_bucket.arn
     transcode_role               = aws_iam_role.transcode_role.arn
     vpc_id                       = module.vpc.vpc_id

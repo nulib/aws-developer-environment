@@ -1,6 +1,7 @@
 locals {
   buckets                 = ["ingest", "uploads", "preservation", "preservation-checks", "pyramids", "streaming" ]
   notification_buckets    = ["ingest", "uploads"]
+  public_buckets          = ["pyramids", "streaming"]
 }
 
 resource "aws_s3_bucket" "meadow_buckets" {
@@ -13,10 +14,10 @@ resource "aws_s3_bucket_public_access_block" "meadow_buckets" {
   for_each = toset(local.buckets)
   bucket   = aws_s3_bucket.meadow_buckets[each.key].id
 
-  block_public_acls       = true
-  block_public_policy     = each.key != "pyramids"
-  ignore_public_acls      = true
-  restrict_public_buckets = each.key != "pyramids"
+  block_public_acls       = !contains(local.public_buckets, each.key)
+  block_public_policy     = !contains(local.public_buckets, each.key)
+  ignore_public_acls      = !contains(local.public_buckets, each.key)
+  restrict_public_buckets = !contains(local.public_buckets, each.key)
 }
 
 resource "aws_s3_bucket_cors_configuration" "meadow_uploads" {
@@ -27,6 +28,30 @@ resource "aws_s3_bucket_cors_configuration" "meadow_uploads" {
     allowed_origins = ["*"]
     expose_headers  = ["ETag"]
     max_age_seconds = 3000
+  }
+}
+
+resource "aws_s3_bucket_versioning" "meadow_preservation" {
+  bucket      = aws_s3_bucket.meadow_buckets["preservation"].id
+
+  versioning_configuration {
+    status = "Enabled"
+  }
+}
+
+resource "aws_s3_bucket_lifecycle_configuration" "meadow_preservation" {
+  bucket      = aws_s3_bucket.meadow_buckets["preservation"].id
+
+  rule {
+    id     = "retain-on-delete"
+    status = "Enabled"
+
+    noncurrent_version_expiration {
+      noncurrent_days = 1
+    }
+    expiration {
+      expired_object_delete_marker = true
+    }
   }
 }
 
@@ -70,23 +95,37 @@ resource "aws_s3_bucket_notification" "bucket_notification" {
   }
 }
 
-data "aws_iam_policy_document" "pyramid_public_read" {
+data "aws_iam_policy_document" "public_bucket_read" {
+  for_each = toset(local.public_buckets)
+
   statement {
-    actions   = ["s3:GetObject"]
+    actions   = ["s3:GetBucketLocation", "s3:ListBucket"]
+    effect    = "Allow"
     principals {
       type        = "AWS"
       identifiers = ["*"]
     }
-    resources = ["${aws_s3_bucket.meadow_buckets["pyramids"].arn}/public/*"]
+    resources = [aws_s3_bucket.meadow_buckets[each.key].arn]
+  }
+
+  statement {
+    actions   = ["s3:GetObject"]
+    effect    = "Allow"
+    principals {
+      type        = "AWS"
+      identifiers = ["*"]
+    }
+    resources = ["${aws_s3_bucket.meadow_buckets[each.key].arn}/*"]
   }  
 }
 
-resource "aws_s3_bucket_policy" "pyramid_public_read" {
-  bucket    = aws_s3_bucket.meadow_buckets["pyramids"].id
-  policy    = data.aws_iam_policy_document.pyramid_public_read.json
+resource "aws_s3_bucket_policy" "public_bucket_read" {
+  for_each  = toset(local.public_buckets)
+  bucket    = aws_s3_bucket.meadow_buckets[each.key].id
+  policy    = data.aws_iam_policy_document.public_bucket_read[each.key].json
 }
 
-resource "aws_s3_bucket_cors_configuration" "pyramid_public_read" {
+resource "aws_s3_bucket_cors_configuration" "pyramid_bucket_read" {
   bucket = aws_s3_bucket.meadow_buckets["pyramids"].id
   cors_rule {
     allowed_methods = ["GET"]

@@ -37,6 +37,10 @@ locals {
       for key in keys(local.pipeline): 
         key => module.pipeline_lambda[key].lambda_function_qualified_arn
     }
+
+    transcode = {
+      role_arn = aws_iam_role.transcode_role.arn
+    }
   }
 
   config_secrets = merge(

@@ -97,11 +97,18 @@ resource "aws_iam_role" "pipeline_lambda_role" {
   assume_role_policy = jsonencode({
     Version   = "2012-10-17"
     Statement = [{
-      Sid       = ""
+      Sid       = "lambda"
       Effect    = "Allow"
       Action    = "sts:AssumeRole"
       Principal = {
         Service = "lambda.amazonaws.com"
+      }
+    },{
+      Sid       = "mediaconvert"
+      Effect    = "Allow"
+      Action    = "sts:AssumeRole"
+      Principal = {
+        Service = "mediaconvert.amazonaws.com"
       }
     }]
   })

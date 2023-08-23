@@ -180,7 +180,8 @@ data "aws_iam_policy_document" "developer_access" {
     actions   = ["iam:Passrole"]
     resources = [
       local.common_config.elasticsearch_snapshot_role,
-      local.common_config.transcode_role
+      local.common_config.transcode_role,
+      data.aws_iam_role.pipeline_lambda_role.arn
     ]
   }
 

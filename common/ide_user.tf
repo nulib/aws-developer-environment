@@ -47,6 +47,15 @@ data "aws_iam_policy_document" "ide_session_policy" {
     actions   = ["ssm:TerminateSession"]
     resources = ["arn:aws:ssm:us-east-1:625046682746:session/*"]
   }
+
+  statement {
+    effect = "Allow"
+    actions = [
+      "mediaconvert:CreateJob",
+      "mediaconvert:DescribeEndpoints"
+    ]
+    resources = ["*"]
+  }
 }
 
 resource "aws_iam_user" "ide_session_user" {

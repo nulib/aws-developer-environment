@@ -2,7 +2,7 @@ resource "aws_lambda_layer_version" "exiftool" {
   s3_bucket           = "nul-public"
   s3_key              = "exiftool_lambda_layer.zip"
   layer_name          = "exiftool"
-  compatible_runtimes = ["nodejs14.x"]
+  compatible_runtimes = ["nodejs18.x"]
   description         = "exiftool runtime for nodejs lambdas"
 }
 
@@ -10,7 +10,7 @@ resource "aws_lambda_layer_version" "ffmpeg" {
   s3_bucket           = "nul-public"
   s3_key              = "ffmpeg.zip"
   layer_name          = "ffmpeg"
-  compatible_runtimes = ["nodejs14.x"]
+  compatible_runtimes = ["nodejs18.x"]
   description         = "FFMPEG runtime for nodejs lambdas"
 }
 
@@ -18,7 +18,7 @@ resource "aws_lambda_layer_version" "mediainfo" {
   s3_bucket           = "nul-public"
   s3_key              = "mediainfo_lambda_layer.zip"
   layer_name          = "mediainfo"
-  compatible_runtimes = ["nodejs14.x"]
+  compatible_runtimes = ["nodejs18.x"]
   description         = "mediainfo binaries for nodejs lambdas from https://mediaarea.net/en/MediaInfo/Download/Lambda"
 }
 
@@ -134,7 +134,7 @@ module "pipeline_lambda" {
   handler                   = "index.handler"
   ephemeral_storage_size    = contains(keys(each.value), "ephemeral_storage") ? each.value.ephemeral_storage : 512
   memory_size               = each.value.memory
-  runtime                   = "nodejs14.x"
+  runtime                   = "nodejs18.x"
   timeout                   = each.value.timeout
   publish                   = true
   create_role               = false

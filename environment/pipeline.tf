@@ -19,4 +19,23 @@ locals {
 resource "aws_sqs_queue" "sequins_queues" {
   for_each = toset(local.actions)
   name     = "${local.prefix}-${each.key}"
+  policy   = jsonencode({
+    Statement = [
+      {
+        Action = "SQS:SendMessage"
+        Condition = {
+          ArnLike = {
+            "aws:SourceArn" = "arn:aws:events:${local.regional_id}:rule/${local.prefix}-*"
+          }
+        }
+        Effect = "Allow"
+        Principal = {
+          AWS = "*"
+        }
+        Resource = "arn:aws:sqs:${local.regional_id}:${local.prefix}-${each.key}"
+        Sid = "eventbridge-queue-access"
+      },
+    ]
+    Version = "2012-10-17"
+  })
 }

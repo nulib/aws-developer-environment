@@ -77,7 +77,7 @@ done
 chmod 0600 $HOME/.ssh/known_hosts
 set +e
   git clone https://github.com/asdf-vm/asdf.git $HOME/.asdf --branch v0.10.2
-  git clone https://github.com/nulib/nul-rdc-devtools $HOME/.nul-rdc-devtools
+  git clone https://github.com/nulib/nul-rdc-devtools $HOME/environment/nul-rdc-devtools
   source $HOME/.asdf/asdf.sh
   conda config --append channels conda-forge
   $HOME/.nul-rdc-devtools/bin/backup-ide restore
@@ -94,10 +94,9 @@ set +e
     asdf reshim
   fi
 set -e
-mkdir -p $HOME/.ide
+ln -fs $HOME/environment/nul-rdc-devtools $HOME/.nul-rdc-devtools
+ln -fs $HOME/.nul-rdc-devtools/ide $HOME/.ide
 echo SHUTDOWN_TIMEOUT=30 > $HOME/.ide/autoshutdown-configuration
-ln -fs $HOME/.nul-rdc-devtools/helpers/stop-if-inactive.sh $HOME/.ide/stop-if-inactive.sh
-chmod 755 $HOME/.ide/stop-if-inactive.sh
 $HOME/.nul-rdc-devtools/scripts/add_aws_adfs_profile.sh staging arn:aws:iam::625046682746:role/NUL-Avalon-PowerUsers
 $HOME/.nul-rdc-devtools/scripts/add_aws_adfs_profile.sh staging-admin arn:aws:iam::625046682746:role/NUL-Avalon-Admins
 $HOME/.nul-rdc-devtools/scripts/add_aws_adfs_profile.sh production arn:aws:iam::845225713889:role/NUL-IT-NextGen-PowerUsers
@@ -110,6 +109,6 @@ __END__
   chsh -s /usr/bin/zsh ec2-user
   sudo -Hiu ec2-user /tmp/user_setup.sh $(get_tag GitHubID)
   chown -R ec2-user:ec2-user ~ec2-user/.ssh
-  echo "* * * * * root /home/ec2-user/.ide/stop-if-inactive.sh" > /etc/cron.d/auto-shutdown
+  echo "* * * * * root ( sleep 15 ; /home/ec2-user/.ide/stop-if-inactive.sh )" > /etc/cron.d/auto-shutdown
   touch /home/ec2-user/.init-complete
 fi

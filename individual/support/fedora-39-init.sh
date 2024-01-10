@@ -9,22 +9,31 @@ if [[ ! -e /home/ec2-user/.init-complete ]]; then
   systemctl start amazon-ssm-agent
   systemctl start session-manager-plugin
 
-  # Replace the /home mount with the separate 150GB volume
-  echo -e "unit: sectors\n\n/dev/nvme1n1p1 : start=        2048, size=   314570752, type=83" | sfdisk /dev/nvme1n1
-  sleep 1; partprobe; sleep 1
-  mkfs.btrfs /dev/nvme1n1p1
-  eval $(blkid --output export /dev/nvme1n1p1)
-  mkdir /mnt/newhome
-  mount -t btrfs /dev/nvme1n1p1 /mnt/newhome
-  rsync -arv /home/ /mnt/newhome/
-  umount /mnt/newhome
-  rmdir /mnt/newhome
-  cp /etc/fstab /etc/fstab.old
-  grep -v /home /etc/fstab.old > /etc/fstab
-  echo "UUID=$UUID /home                   btrfs   compress=zstd:1 0 0" >> /etc/fstab
-  systemctl daemon-reload
-  umount /home
-  mount /home
+  # If there's an empty, unpartitioned volume, use it for /home
+  for dev in /dev/nvme?n1; do
+    if ! sfdisk -d $dev >/dev/null 2>&1; then
+      home_device=$dev
+    fi
+  done
+  if [[ $home_device == "" ]]; then
+    sectors=$(sudo parted -j $home_device unit s print free 2>/dev/null | jq -r '.disk.size' | sed 's/s$//g')
+    size=$(expr $sectors - 2048)
+    echo -e "unit: sectors\n\n${home_device}p1 : start=        2048, size=   $size, type=83" | sfdisk ${home_device}
+    sleep 1; partprobe; sleep 1
+    mkfs.btrfs ${home_device}p1
+    eval $(blkid --output export ${home_device}p1)
+    mkdir /mnt/newhome
+    mount -t btrfs ${home_device}p1 /mnt/newhome
+    rsync -arv /home/ /mnt/newhome/
+    umount /mnt/newhome
+    rmdir /mnt/newhome
+    cp /etc/fstab /etc/fstab.orig
+    grep -v /home /etc/fstab.orig > /etc/fstab
+    echo "UUID=$UUID /home                   btrfs   compress=zstd:1 0 0" >> /etc/fstab
+    systemctl daemon-reload
+    umount /home
+    mount /home
+  fi
 
   # Replace `fedora` user with `ec2-user`, maintaing uid and gid
   groupmod -g 1001 fedora

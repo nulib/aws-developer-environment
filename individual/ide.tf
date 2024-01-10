@@ -41,27 +41,10 @@ resource "aws_instance" "ide_instance" {
 
     tags = merge(
       lookup(var.user_tags, local.owner, {}),
+      local.tags,
       { 
         Name   = "${local.owner}-dev-environment-ide"
         Device = "root"
-      }
-    )
-  }
-
-  # Home volume
-  ebs_block_device {
-    device_name             = "/dev/sdf"
-    encrypted               = false
-    delete_on_termination   = false
-    volume_size             = 150
-    volume_type             = "gp3"
-    throughput              = 125
-
-    tags = merge(
-      lookup(var.user_tags, local.owner, {}),
-      { 
-        Name   = "${local.owner}-dev-environment-ide"
-        Device = "home"
       }
     )
   }
@@ -78,6 +61,28 @@ resource "aws_instance" "ide_instance" {
   lifecycle {
     ignore_changes = all
   }
+}
+
+resource "aws_ebs_volume" "home_device" {
+  availability_zone   = aws_instance.ide_instance.availability_zone
+  encrypted           = false
+  size                = 150
+  type                = "gp3"
+  throughput          = 125
+
+  tags = merge(
+    lookup(var.user_tags, local.owner, {}),
+    { 
+      Name   = "${local.owner}-dev-environment-ide"
+      Device = "home"
+    }
+  )
+}
+
+resource "aws_volume_attachment" "home_device" {
+  device_name = "/dev/sdf"
+  instance_id = aws_instance.ide_instance.id
+  volume_id   = aws_ebs_volume.home_device.id
 }
 
 resource "aws_security_group" "ide_instance_security_group" {

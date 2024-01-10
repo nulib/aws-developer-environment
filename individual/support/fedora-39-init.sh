@@ -15,12 +15,12 @@ if [[ ! -e /home/ec2-user/.init-complete ]]; then
       home_device=$dev
     fi
   done
-  if [[ $home_device == "" ]]; then
-    sectors=$(sudo parted -j $home_device unit s print free 2>/dev/null | jq -r '.disk.size' | sed 's/s$//g')
-    size=$(expr $sectors - 2048)
-    echo -e "unit: sectors\n\n${home_device}p1 : start=        2048, size=   $size, type=83" | sfdisk ${home_device}
+  if [[ $home_device != "" ]]; then
+    parted $home_device mklabel gpt
+    parted $home_device mkpart primary 0% 100%
     sleep 1; partprobe; sleep 1
     mkfs.btrfs ${home_device}p1
+    sleep 1; partprobe; sleep 1
     eval $(blkid --output export ${home_device}p1)
     mkdir /mnt/newhome
     mount -t btrfs ${home_device}p1 /mnt/newhome

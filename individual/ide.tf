@@ -52,7 +52,7 @@ resource "aws_instance" "ide_instance" {
   ebs_block_device {
     device_name             = "/dev/sdf"
     encrypted               = false
-    delete_on_termination   = true
+    delete_on_termination   = false
     volume_size             = 150
     volume_type             = "gp3"
     throughput              = 125

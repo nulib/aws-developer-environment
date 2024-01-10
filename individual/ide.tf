@@ -1,7 +1,7 @@
 data "aws_ami" "fedora_linux" {
   most_recent   = true
   owners        = [125523088429]
-  name_regex    = "^Fedora-Cloud-Base-36-.+-gp2-.+$"
+  name_regex    = "^Fedora-Cloud-Base-39-.+-gp3-.+$"
   filter {
     name = "architecture"
     values = ["x86_64"]
@@ -23,6 +23,7 @@ resource "aws_instance" "ide_instance" {
 
   disable_api_termination                 = true
   instance_initiated_shutdown_behavior    = "stop"
+  hibernation                             = false
 
   availability_zone             = data.aws_subnet.ide_instance_subnet.availability_zone
   subnet_id                     = data.aws_subnet.ide_instance_subnet.id
@@ -30,16 +31,42 @@ resource "aws_instance" "ide_instance" {
   security_groups               = [aws_security_group.ide_instance_security_group.id]
   associate_public_ip_address   = true
 
-  ebs_block_device {
-    device_name             = "/dev/sda1"
+  # Root volume
+  root_block_device {
     encrypted               = false
     delete_on_termination   = true
-    volume_size             = 50
+    volume_size             = 20
     volume_type             = "gp3"
     throughput              = 125
+
+    tags = merge(
+      lookup(var.user_tags, local.owner, {}),
+      { 
+        Name   = "${local.owner}-dev-environment-ide"
+        Device = "root"
+      }
+    )
   }
 
-  user_data = file("${path.module}/support/fedora-36-init.sh")
+  # Home volume
+  ebs_block_device {
+    device_name             = "/dev/sdf"
+    encrypted               = false
+    delete_on_termination   = false
+    volume_size             = 150
+    volume_type             = "gp3"
+    throughput              = 125
+
+    tags = merge(
+      lookup(var.user_tags, local.owner, {}),
+      { 
+        Name   = "${local.owner}-dev-environment-ide"
+        Device = "home"
+      }
+    )
+  }
+
+  user_data = file("${path.module}/support/fedora-39-init.sh")
 
   tags = merge(
     lookup(var.user_tags, local.owner, {}),

@@ -9,6 +9,32 @@ if [[ ! -e /home/ec2-user/.init-complete ]]; then
   systemctl start amazon-ssm-agent
   systemctl start session-manager-plugin
 
+  # If there's an empty, unpartitioned volume, use it for /home
+  for dev in /dev/nvme?n1; do
+    if ! sfdisk -d $dev >/dev/null 2>&1; then
+      home_device=$dev
+    fi
+  done
+  if [[ $home_device != "" ]]; then
+    parted $home_device mklabel gpt
+    parted $home_device mkpart primary 0% 100%
+    sleep 1; partprobe; sleep 1
+    mkfs.btrfs ${home_device}p1
+    sleep 1; partprobe; sleep 1
+    eval $(blkid --output export ${home_device}p1)
+    mkdir /mnt/newhome
+    mount -t btrfs ${home_device}p1 /mnt/newhome
+    rsync -arv /home/ /mnt/newhome/
+    umount /mnt/newhome
+    rmdir /mnt/newhome
+    cp /etc/fstab /etc/fstab.orig
+    grep -v /home /etc/fstab.orig > /etc/fstab
+    echo "UUID=$UUID /home                   btrfs   compress=zstd:1 0 0" >> /etc/fstab
+    systemctl daemon-reload
+    umount /home
+    mount /home
+  fi
+
   # Replace `fedora` user with `ec2-user`, maintaing uid and gid
   groupmod -g 1001 fedora
   usermod -u 1001 -g 1001 fedora
@@ -32,12 +58,13 @@ if [[ ! -e /home/ec2-user/.init-complete ]]; then
   dnf install -y https://download1.rpmfusion.org/nonfree/fedora/rpmfusion-nonfree-release-$(rpm -E %fedora).noarch.rpm
 
   # Install dev and runtime dependencies
-  DEPS="autoconf autojump-zsh automake bzip2 bzip2-devel conda cronie cronie-anacron curl direnv ffmpeg 
+  DEPS="at autoconf autojump-zsh automake bzip2 bzip2-devel conda cronie cronie-anacron curl direnv ffmpeg 
     fop gcc-c++ git gnupg2 inotify-tools jq krb5-devel libffi-devel libpq-devel libsqlite3x-devel libxslt 
     lsof mediainfo nc ncurses-devel openssl-devel perl perl-Image-ExifTool postgresql readline-devel tmux 
     util-linux-user vim zsh"
   dnf group install -y "Development Tools"
   dnf install -y -d1 --allowerasing $DEPS
+  systemctl enable --now atd
   systemctl enable --now crond
 
   # Install AWS CLI v2
@@ -77,9 +104,11 @@ done
 chmod 0600 $HOME/.ssh/known_hosts
 set +e
   git clone https://github.com/asdf-vm/asdf.git $HOME/.asdf --branch v0.10.2
-  git clone https://github.com/nulib/nul-rdc-devtools $HOME/.nul-rdc-devtools
+  git clone https://github.com/nulib/nul-rdc-devtools $HOME/environment/nul-rdc-devtools
   source $HOME/.asdf/asdf.sh
   conda config --append channels conda-forge
+  ln -fs $HOME/environment/nul-rdc-devtools $HOME/.nul-rdc-devtools
+  ln -fs $HOME/.nul-rdc-devtools/ide $HOME/.ide
   $HOME/.nul-rdc-devtools/bin/backup-ide restore
 set -e
 if [[ ! -e $HOME/.zprofile ]]; then cat > $HOME/.zprofile <<'__EOC__'; fi
@@ -94,15 +123,11 @@ set +e
     asdf reshim
   fi
 set -e
-mkdir -p $HOME/.ide
 echo SHUTDOWN_TIMEOUT=30 > $HOME/.ide/autoshutdown-configuration
-ln -fs $HOME/.nul-rdc-devtools/helpers/stop-if-inactive.sh $HOME/.ide/stop-if-inactive.sh
-chmod 755 $HOME/.ide/stop-if-inactive.sh
 $HOME/.nul-rdc-devtools/scripts/add_aws_adfs_profile.sh staging arn:aws:iam::625046682746:role/NUL-Avalon-PowerUsers
 $HOME/.nul-rdc-devtools/scripts/add_aws_adfs_profile.sh staging-admin arn:aws:iam::625046682746:role/NUL-Avalon-Admins
 $HOME/.nul-rdc-devtools/scripts/add_aws_adfs_profile.sh production arn:aws:iam::845225713889:role/NUL-IT-NextGen-PowerUsers
 $HOME/.nul-rdc-devtools/scripts/add_aws_adfs_profile.sh production-admin arn:aws:iam::845225713889:role/NUL-IT-NextGen-Admins
-rm -rf $HOME/.c9
 
 __END__
 
@@ -110,6 +135,6 @@ __END__
   chsh -s /usr/bin/zsh ec2-user
   sudo -Hiu ec2-user /tmp/user_setup.sh $(get_tag GitHubID)
   chown -R ec2-user:ec2-user ~ec2-user/.ssh
-  echo "* * * * * root /home/ec2-user/.ide/stop-if-inactive.sh" > /etc/cron.d/auto-shutdown
+  echo "* * * * * root ( sleep 15 ; /home/ec2-user/.ide/stop-if-inactive.sh )" > /etc/cron.d/auto-shutdown
   touch /home/ec2-user/.init-complete
 fi

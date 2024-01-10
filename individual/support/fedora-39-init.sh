@@ -70,35 +70,29 @@ if [[ ! -e /home/ec2-user/.init-complete ]]; then
   systemctl start amazon-ssm-agent
   systemctl start session-manager-plugin
 
-  # If there's an empty, unpartitioned volume, use it for /home
   for dev in /dev/nvme?n1; do
     if [[ $(btrfs property get ${dev}p1 label) == "label=home" ]]; then
-      new_home=false
-      home_device=$dev
+      # If there's an existing home filesystem, use it without any new provisioning
+      replace_home ${dev}p1
       break
     elif ! sfdisk -d $dev >/dev/null 2>&1; then
-      new_home=true
-      home_device=$dev
-      break
-    fi
-  done
-
-  if [[ $home_device != "" ]]; then
-    if [[ $new_home == "true" ]]; then
-      parted $home_device mklabel gpt
-      parted $home_device mkpart primary 0% 100%
+      # If there's an empty, unpartitioned volume, partition it, create a filesystem and use it for /home
+      parted $dev mklabel gpt
+      parted $dev mkpart primary 0% 100%
       sleep 1; partprobe; sleep 1
-      mkfs.btrfs -L home ${home_device}p1
+      mkfs.btrfs -L home ${dev}p1
       sleep 1; partprobe; sleep 1
-      eval $(blkid --output export ${home_device}p1)
+      eval $(blkid --output export ${dev}p1)
       mkdir /mnt/newhome
-      mount -t btrfs ${home_device}p1 /mnt/newhome
+      mount -t btrfs ${dev}p1 /mnt/newhome
       rsync -arv /home/ /mnt/newhome/
       umount /mnt/newhome
       rmdir /mnt/newhome
+      replace_home ${dev}p1
+      new_home=true
+      break
     fi
-    replace_home ${home_device}p1
-  fi
+  done
 
   # Replace `fedora` user with `ec2-user`, maintaing uid and gid
   groupmod -g 1001 fedora

@@ -9,6 +9,23 @@ if [[ ! -e /home/ec2-user/.init-complete ]]; then
   systemctl start amazon-ssm-agent
   systemctl start session-manager-plugin
 
+  # Replace the /home mount with the separate 150GB volume
+  echo -e "unit: sectors\n\n/dev/nvme1n1p1 : start=        2048, size=   314570752, type=83" | sfdisk /dev/nvme1n1
+  sleep 1; partprobe; sleep 1
+  mkfs.btrfs /dev/nvme1n1p1
+  eval $(blkid --output export /dev/nvme1n1p1)
+  mkdir /mnt/newhome
+  mount -t btrfs /dev/nvme1n1p1 /mnt/newhome
+  rsync -arv /home/ /mnt/newhome/
+  umount /mnt/newhome
+  rmdir /mnt/newhome
+  cp /etc/fstab /etc/fstab.old
+  grep -v /home /etc/fstab.old > /etc/fstab
+  echo "UUID=$UUID /home                   btrfs   compress=zstd:1 0 0" >> /etc/fstab
+  systemctl daemon-reload
+  umount /home
+  mount /home
+
   # Replace `fedora` user with `ec2-user`, maintaing uid and gid
   groupmod -g 1001 fedora
   usermod -u 1001 -g 1001 fedora
@@ -32,12 +49,13 @@ if [[ ! -e /home/ec2-user/.init-complete ]]; then
   dnf install -y https://download1.rpmfusion.org/nonfree/fedora/rpmfusion-nonfree-release-$(rpm -E %fedora).noarch.rpm
 
   # Install dev and runtime dependencies
-  DEPS="autoconf autojump-zsh automake bzip2 bzip2-devel conda cronie cronie-anacron curl direnv ffmpeg 
+  DEPS="at autoconf autojump-zsh automake bzip2 bzip2-devel conda cronie cronie-anacron curl direnv ffmpeg 
     fop gcc-c++ git gnupg2 inotify-tools jq krb5-devel libffi-devel libpq-devel libsqlite3x-devel libxslt 
     lsof mediainfo nc ncurses-devel openssl-devel perl perl-Image-ExifTool postgresql readline-devel tmux 
     util-linux-user vim zsh"
   dnf group install -y "Development Tools"
   dnf install -y -d1 --allowerasing $DEPS
+  systemctl enable --now atd
   systemctl enable --now crond
 
   # Install AWS CLI v2
@@ -80,6 +98,8 @@ set +e
   git clone https://github.com/nulib/nul-rdc-devtools $HOME/environment/nul-rdc-devtools
   source $HOME/.asdf/asdf.sh
   conda config --append channels conda-forge
+  ln -fs $HOME/environment/nul-rdc-devtools $HOME/.nul-rdc-devtools
+  ln -fs $HOME/.nul-rdc-devtools/ide $HOME/.ide
   $HOME/.nul-rdc-devtools/bin/backup-ide restore
 set -e
 if [[ ! -e $HOME/.zprofile ]]; then cat > $HOME/.zprofile <<'__EOC__'; fi
@@ -94,14 +114,11 @@ set +e
     asdf reshim
   fi
 set -e
-ln -fs $HOME/environment/nul-rdc-devtools $HOME/.nul-rdc-devtools
-ln -fs $HOME/.nul-rdc-devtools/ide $HOME/.ide
 echo SHUTDOWN_TIMEOUT=30 > $HOME/.ide/autoshutdown-configuration
 $HOME/.nul-rdc-devtools/scripts/add_aws_adfs_profile.sh staging arn:aws:iam::625046682746:role/NUL-Avalon-PowerUsers
 $HOME/.nul-rdc-devtools/scripts/add_aws_adfs_profile.sh staging-admin arn:aws:iam::625046682746:role/NUL-Avalon-Admins
 $HOME/.nul-rdc-devtools/scripts/add_aws_adfs_profile.sh production arn:aws:iam::845225713889:role/NUL-IT-NextGen-PowerUsers
 $HOME/.nul-rdc-devtools/scripts/add_aws_adfs_profile.sh production-admin arn:aws:iam::845225713889:role/NUL-IT-NextGen-Admins
-rm -rf $HOME/.c9
 
 __END__
 

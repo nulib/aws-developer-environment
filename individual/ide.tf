@@ -31,13 +31,39 @@ resource "aws_instance" "ide_instance" {
   security_groups               = [aws_security_group.ide_instance_security_group.id]
   associate_public_ip_address   = true
 
+  # Root volume
+  root_block_device {
+    encrypted               = false
+    delete_on_termination   = true
+    volume_size             = 20
+    volume_type             = "gp3"
+    throughput              = 125
+
+    tags = merge(
+      lookup(var.user_tags, local.owner, {}),
+      { 
+        Name   = "${local.owner}-dev-environment-ide"
+        Device = "root"
+      }
+    )
+  }
+
+  # Home volume
   ebs_block_device {
-    device_name             = "/dev/sda1"
-    encrypted               = true
+    device_name             = "/dev/sdf"
+    encrypted               = false
     delete_on_termination   = true
     volume_size             = 150
     volume_type             = "gp3"
     throughput              = 125
+
+    tags = merge(
+      lookup(var.user_tags, local.owner, {}),
+      { 
+        Name   = "${local.owner}-dev-environment-ide"
+        Device = "home"
+      }
+    )
   }
 
   user_data = file("${path.module}/support/fedora-39-init.sh")

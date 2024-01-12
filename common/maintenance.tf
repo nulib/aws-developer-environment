@@ -132,7 +132,8 @@ resource "aws_ssm_maintenance_window_task" "run_backup" {
       parameter {
         name = "commands"
         values = [
-          "sudo -Hiu ec2-user sh -c \"cd /home/ec2-user/.nul-rdc-devtools && git pull origin && bin/maintenance-window\"",
+          "sudo -Hiu ec2-user sh -c \"cd /home/ec2-user/.nul-rdc-devtools && git pull origin\"",
+          "/home/ec2-user/.nul-rdc-devtools/bin/maintenance-window"
         ]
       }
     }

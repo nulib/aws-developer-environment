@@ -206,7 +206,15 @@ The `common` directory contains the Terraform manifests for provisioning and mai
 
 #### Usage
 
-`terraform <init|plan|apply>` as you would with any other Terraform project. There are no variables or other configuration to worry about. If initializing for the first time, you'll need to know which S3 bucket holds the existing state.
+```shell
+$ cd common
+$ ln -s /path/to/tfvars/aws-developer-environment/common/terraform.tfvars .
+$ terraform init
+$ terraform plan -out terraform.plan
+$ terraform apply terraform.plan
+```
+
+If initializing for the first time, you'll need to know which S3 bucket holds the existing state.
 
 ### Individual Developer Environments
 

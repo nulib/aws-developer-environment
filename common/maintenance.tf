@@ -132,9 +132,7 @@ resource "aws_ssm_maintenance_window_task" "run_backup" {
       parameter {
         name = "commands"
         values = [
-          "dnf update --security --bugfix",
-          "sudo -Hiu ec2-user sh -c \"cd /home/ec2-user/.nul-rdc-devtools && git pull origin && bin/backup-ide backup\"",
-          "shutdown -h 15"
+          "sudo -Hiu ec2-user sh -c \"cd /home/ec2-user/.nul-rdc-devtools && git pull origin && bin/maintenance-window\"",
         ]
       }
     }

@@ -1,3 +1,8 @@
+resource "random_password" "backup_key" {
+  length  = 20
+  special = false
+}
+
 resource "aws_secretsmanager_secret" "output_parameter" {
   name = "${local.project}/terraform/common"
 }
@@ -5,6 +10,7 @@ resource "aws_secretsmanager_secret" "output_parameter" {
 resource "aws_secretsmanager_secret_version" "output_parameter" {
   secret_id = aws_secretsmanager_secret.output_parameter.id
   secret_string = jsonencode({
+    backup_key                   = random_password.backup_key.result
     elasticsearch_snapshot_role  = aws_iam_role.search_snapshot_bucket_access.arn
     fixity_function_arn          = module.execute_fixity_function.lambda_function_arn
     ide_uptime_alert_topic       = aws_sns_topic.ide_uptime_alert.arn

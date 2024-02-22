@@ -23,6 +23,7 @@ const fetch = async (params) => {
   });
 
   const response = await awsFetch(request);
+  console.log(`${request.method} ${request.path}\n${response}`);
   const { statusCode, body } = response;
   if (statusCode >= 200 && statusCode <= 299) {
     return JSON.parse(body);
@@ -131,9 +132,15 @@ const handler = async (event) => {
   try {
     let body;
     switch (event.tf.action) {
-      case "create": body = await create(event);
-      case "update": body = await update(event);
-      case "delete": body = await destroy(event);
+      case "create": 
+        body = await create(event);
+        break;
+      case "update":
+        body = await update(event);
+        break;
+      case "delete":
+        body = await destroy(event);
+        break;
     }
     return { statusCode: 200, body: JSON.stringify(body) };
   } catch (err) {
@@ -141,4 +148,4 @@ const handler = async (event) => {
   }
 };
 
-module.exports = { handler, findExisting };
+module.exports = { handler };

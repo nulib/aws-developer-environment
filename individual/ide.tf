@@ -243,6 +243,13 @@ data "aws_iam_policy_document" "developer_access" {
       "arn:aws:cloudfront:${local.regional_id}::distribution/${local.common_config.iiif_distribution_id}"
     ]
   }
+
+  statement {
+    sid       = "DeveloperSagemakerInvokeAccess"
+    effect    = "Allow"
+    actions   = ["sagemaker:InvokeEndpoint"]
+    resources = ["*"]
+  }
 }
 
 resource "aws_iam_policy" "developer_access" {

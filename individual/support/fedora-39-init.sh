@@ -122,9 +122,9 @@ if [[ ! -e /home/ec2-user/.init-complete ]]; then
 
   # Install dev and runtime dependencies
   DEPS="at autoconf autojump-zsh automake bzip2 bzip2-devel conda cronie cronie-anacron curl direnv ffmpeg 
-    fop gcc-c++ git gnupg2 inotify-tools jq krb5-devel libffi-devel libpq-devel libsqlite3x-devel libxslt 
-    lsof mediainfo nc ncurses-devel openssl-devel perl perl-Image-ExifTool postgresql readline-devel restic 
-    tmux util-linux-user vim zsh"
+    fop gcc-c++ git git-lfs gnupg2 inotify-tools jq krb5-devel libffi-devel libpq-devel libsqlite3x-devel
+    libxslt lsof mediainfo nc ncurses-devel openssl-devel perl perl-Image-ExifTool postgresql readline-devel 
+    restic tmux util-linux-user vim zsh"
   dnf group install -y "Development Tools"
   dnf install -y -d1 --allowerasing $DEPS
   systemctl enable --now atd

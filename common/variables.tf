@@ -45,3 +45,22 @@ variable "dc_api_ttl" {
 variable "dc_api_secret" {
   type    = string
 }
+
+variable "model_repository" {
+  type    = string
+}
+
+variable "sagemaker_inference_memory" {
+  type    = number
+  default = 4096
+}
+
+variable "sagemaker_inference_provisioned_concurrency" {
+  type    = number
+  default = 0
+}
+
+variable "sagemaker_inference_max_concurrency" {
+  type    = number
+  default = 20
+}

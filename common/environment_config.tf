@@ -1,17 +1,20 @@
 locals {
+  deploy_model_result = jsondecode(aws_lambda_invocation.deploy_model.result)
+  deploy_model_body   = jsondecode(local.deploy_model_result.body)
+
   computed_secrets = {
-    db   = {
-      host        = module.aurora_postgresql.cluster_endpoint
-      port        = module.aurora_postgresql.cluster_port
-      user        = module.aurora_postgresql.cluster_master_username
-      password    = module.aurora_postgresql.cluster_master_password
+    db = {
+      host     = module.aurora_postgresql.cluster_endpoint
+      port     = module.aurora_postgresql.cluster_port
+      user     = module.aurora_postgresql.cluster_master_username
+      password = module.aurora_postgresql.cluster_master_password
     }
 
     dc_api = {
       v2 = {
-        base_url            = var.dc_api_url
-        api_token_secret    = var.dc_api_secret
-        api_token_ttl       = var.dc_api_ttl 
+        base_url         = var.dc_api_url
+        api_token_secret = var.dc_api_secret
+        api_token_ttl    = var.dc_api_ttl
       }
     }
 
@@ -20,13 +23,15 @@ locals {
     }
 
     index = {
-      index_endpoint    = "https://${aws_opensearch_domain.search_index.endpoint}"
-      kibana_endpoint   = "https://${aws_opensearch_domain.search_index.kibana_endpoint}"
+      index_endpoint     = "https://${aws_opensearch_domain.search_index.endpoint}"
+      kibana_endpoint    = "https://${aws_opensearch_domain.search_index.dashboard_endpoint}"
+      embedding_model_id = lookup(local.deploy_model_body, "model_id", "DEPLOY ERROR")
     }
 
     search = {
-      cluster_endpoint    = "https://${aws_opensearch_domain.search_index.endpoint}"
-      dashboard_endpoint   = "https://${aws_opensearch_domain.search_index.kibana_endpoint}"
+      cluster_endpoint   = "https://${aws_opensearch_domain.search_index.endpoint}"
+      dashboard_endpoint = "https://${aws_opensearch_domain.search_index.dashboard_endpoint}"
+      embedding_model_id = lookup(local.deploy_model_body, "model_id", "DEPLOY ERROR")
     }
 
     ldap = merge(var.ldap_config, {
@@ -34,8 +39,8 @@ locals {
     })
 
     pipeline = {
-      for key in keys(local.pipeline): 
-        key => module.pipeline_lambda[key].lambda_function_qualified_arn
+      for key in keys(local.pipeline) :
+      key => module.pipeline_lambda[key].lambda_function_qualified_arn
     }
 
     transcode = {
@@ -55,22 +60,22 @@ locals {
 }
 
 resource "aws_secretsmanager_secret" "config_secrets" {
-  name    = "${local.project}/config/meadow"
+  name        = "${local.project}/config/meadow"
   description = "Meadow configuration secrets"
 }
 
 resource "aws_secretsmanager_secret" "ssl_certificate" {
-  name = "${local.project}/config/wildcard_ssl"
+  name        = "${local.project}/config/wildcard_ssl"
   description = "Wildcard SSL certificate and private key"
 }
 
 resource "aws_secretsmanager_secret_version" "config_secrets" {
-  secret_id = aws_secretsmanager_secret.config_secrets.id
+  secret_id     = aws_secretsmanager_secret.config_secrets.id
   secret_string = jsonencode(local.config_secrets)
 }
 
 resource "aws_secretsmanager_secret_version" "ssl_certificate" {
-  secret_id = aws_secretsmanager_secret.ssl_certificate.id
+  secret_id     = aws_secretsmanager_secret.ssl_certificate.id
   secret_string = jsonencode(local.ssl_certificate)
 
   lifecycle {

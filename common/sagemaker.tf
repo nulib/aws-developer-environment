@@ -23,7 +23,8 @@ resource "aws_s3_bucket" "sagemaker_model_bucket" {
 
 resource "terraform_data" "inference_model_artifact" {
   triggers_replace = [
-    var.model_repository
+    var.model_repository,
+    file("${path.module}/model/inference.py")
   ]
 
   input = "${path.module}/model/.working/${local.model_id}.tar.gz"
@@ -137,4 +138,31 @@ resource "aws_sagemaker_endpoint_configuration" "serverless_inference" {
 resource "aws_sagemaker_endpoint" "serverless_inference" {
   name                    = "${local.project}-embedding"
   endpoint_config_name    = aws_sagemaker_endpoint_configuration.serverless_inference.name
+}
+
+data "aws_iam_policy_document" "db_sagemaker_access" {
+  statement {
+    effect = "Allow"
+    actions = [
+      "sagemaker:InvokeEndpoint",
+      "sagemaker:InvokeEndpointAsync"
+    ]
+    resources = [aws_sagemaker_endpoint.serverless_inference.arn]
+  }
+}
+
+resource "aws_iam_role" "db_sagemaker_access" {
+  path    = local.iam_path
+  name    = "${local.project}-db-sagemaker-access"
+  assume_role_policy = data.aws_iam_policy_document.rds_assume_role.json
+  inline_policy {
+    name    = "${local.project}-db-sagemaker-access"
+    policy  = data.aws_iam_policy_document.db_sagemaker_access.json
+  }
+}
+
+resource "aws_rds_cluster_role_association" "example" {
+  db_cluster_identifier = module.aurora_postgresql.cluster_id
+  feature_name          = "SageMaker"
+  role_arn              = aws_iam_role.db_sagemaker_access.arn
 }

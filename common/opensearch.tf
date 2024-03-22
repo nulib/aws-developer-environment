@@ -64,7 +64,7 @@ resource "aws_opensearch_domain" "search_index" {
 
   access_policies = data.aws_iam_policy_document.search_index_http_access.json
   lifecycle {
-    ignore_changes = [ebs_options]
+    ignore_changes = [ebs_options, log_publishing_options]
   }
 }
 

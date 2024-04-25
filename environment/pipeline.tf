@@ -8,6 +8,7 @@ locals {
     "extract-exif-metadata",
     "extract-media-metadata",
     "copy-file-to-preservation",
+    "create-derivative-copy",
     "create-pyramid-tiff",
     "create-transcode-job",
     "generate-poster-image",

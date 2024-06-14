@@ -1,0 +1,32 @@
+{
+  "name": "cohere.embed-multilingual",
+  "function_name": "remote",
+  "model_group_id": "c9Xc0Y0BBaQ-C8VOa-Wc",
+  "description": "Cohere Embed Multilingual via AWS Bedrock",
+  "connector": {
+    "name": "dev-environment-cohere-embed",
+    "description": "Connector for Cohere Embed Multilingual",
+    "version": 1,
+    "protocol": "aws_sigv4",
+    "credential": {
+      "roleArn": "arn:aws:iam::625046682746:role/dev-environment-opensearch-connector"
+    },
+    "parameters": {
+      "region": "us-east-1",
+      "service_name": "bedrock",
+      "model_name": "cohere.embed-multilingual-v3"
+    },
+    "actions": [
+      {
+        "action_type": "predict",
+        "method": "POST",
+        "headers": {
+          "content-type": "application/json"
+        },
+        "url": "https://bedrock-runtime.${parameters.region}.amazonaws.com/model/${parameters.model_name}/invoke",
+        "request_body": "{\"texts\": ${parameters.input}, \"input_type\": \"search_document\"}",
+        "post_process_function": "def name = 'sentence_embedding';\ndef dataType = 'FLOAT32';\nif (params.embeddings == null || params.embeddings.length == 0 || params.embeddings[0] == null || params.embeddings[0].length == 0) {\nreturn params.message;\n}\ndef shape = [params.embeddings[0].length];\ndef json = '{\"name\":\"' + name + '\",\"data_type\":\"' + dataType + '\",\"shape\":' + shape + ',\"data\":' + params.embeddings[0] + '}';\nreturn json;"
+      }
+    ]
+  }
+}

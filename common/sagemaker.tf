@@ -166,3 +166,8 @@ resource "aws_rds_cluster_role_association" "example" {
   feature_name          = "SageMaker"
   role_arn              = aws_iam_role.db_sagemaker_access.arn
 }
+
+locals {
+  deploy_model_result = jsondecode(aws_lambda_invocation.deploy_model.result)
+  deploy_model_body   = jsondecode(local.deploy_model_result.body)
+}

@@ -1,7 +1,4 @@
 locals {
-  deploy_model_result = jsondecode(aws_lambda_invocation.deploy_model.result)
-  deploy_model_body   = jsondecode(local.deploy_model_result.body)
-
   computed_secrets = {
     db = {
       host     = module.aurora_postgresql.cluster_endpoint
@@ -64,21 +61,7 @@ resource "aws_secretsmanager_secret" "config_secrets" {
   description = "Meadow configuration secrets"
 }
 
-resource "aws_secretsmanager_secret" "ssl_certificate" {
-  name        = "${local.project}/config/wildcard_ssl"
-  description = "Wildcard SSL certificate and private key"
-}
-
 resource "aws_secretsmanager_secret_version" "config_secrets" {
   secret_id     = aws_secretsmanager_secret.config_secrets.id
   secret_string = jsonencode(local.config_secrets)
-}
-
-resource "aws_secretsmanager_secret_version" "ssl_certificate" {
-  secret_id     = aws_secretsmanager_secret.ssl_certificate.id
-  secret_string = jsonencode(local.ssl_certificate)
-
-  lifecycle {
-    ignore_changes = all
-  }
 }

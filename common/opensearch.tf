@@ -44,7 +44,7 @@ resource "aws_security_group" "search_index" {
   
 resource "aws_opensearch_domain" "search_index" {
   domain_name           = local.opensearch_domain
-  engine_version        = "OpenSearch_2.11"
+  engine_version        = "OpenSearch_2.13"
   advanced_options      = {
     "rest.action.multi.allow_explicit_index" = "true"
   }  

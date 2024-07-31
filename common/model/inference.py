@@ -1,7 +1,4 @@
-import csv
-from io import StringIO
-import json
-import re
+
 from transformers import AutoTokenizer, AutoModel
 import torch
 import torch.nn.functional as F
@@ -12,26 +9,20 @@ def mean_pooling(model_output, attention_mask):
     input_mask_expanded = attention_mask.unsqueeze(-1).expand(token_embeddings.size()).float()
     return torch.sum(token_embeddings * input_mask_expanded, 1) / torch.clamp(input_mask_expanded.sum(1), min=1e-9)
 
-def input_fn(input_data, content_type):
-    if content_type == "application/json":
-        return json.loads(input_data).get("inputs")
-    elif content_type == "text/csv":
-        return re.split("\\r?\\n", input_data)
-    else:
-        return input_data
 
-def model_fn(model_dir):
-    # Load model from HuggingFace Hub
-    tokenizer = AutoTokenizer.from_pretrained(model_dir)
-    model = AutoModel.from_pretrained(model_dir)
-    return model, tokenizer
+def model_fn(model_dir, context=None):
+  # Load model from HuggingFace Hub
+  tokenizer = AutoTokenizer.from_pretrained(model_dir, trust_remote_code=True)
+  model = AutoModel.from_pretrained(model_dir, trust_remote_code=True)
+  return model, tokenizer
 
-def predict_fn(data, model_and_tokenizer):
+def predict_fn(data, model_and_tokenizer, context=None):
     # destruct model and tokenizer
     model, tokenizer = model_and_tokenizer
     
     # Tokenize sentences
-    encoded_input = tokenizer(data, padding=True, truncation=True, return_tensors='pt')
+    sentences = data.pop("inputs", data)
+    encoded_input = tokenizer(sentences, padding=True, truncation=True, return_tensors='pt')
 
     # Compute token embeddings
     with torch.no_grad():
@@ -45,14 +36,3 @@ def predict_fn(data, model_and_tokenizer):
     
     # return dictonary, which will be json serializable
     return {"embedding": sentence_embeddings[0].tolist()}
-
-def output_fn(prediction, accept):
-    if accept == "application/json":
-        return json.dumps(prediction)
-    elif accept == "text/csv":
-        result = StringIO()
-        writer = csv.writer(result)
-        writer.writerow(prediction["embedding"])
-        return result.getvalue()
-    else:
-        return json.dumps(prediction["embedding"])

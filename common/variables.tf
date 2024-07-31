@@ -50,6 +50,10 @@ variable "model_repository" {
   type    = string
 }
 
+variable "model_requirements" {
+  type    = list(string)
+}
+
 variable "sagemaker_inference_memory" {
   type    = number
   default = 4096

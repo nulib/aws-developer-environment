@@ -16,8 +16,8 @@ locals {
     inference = {
       endpoints = { 
         default = {    
-          name        = aws_sagemaker_endpoint.serverless_inference.name
-          endpoint    = "https://runtime.sagemaker.${data.aws_region.current.name}.amazonaws.com/endpoints/${aws_sagemaker_endpoint.serverless_inference.name}/invocations"
+          name        = var.embedding_model_name
+          endpoint    = "https://bedrock-runtime.${data.aws_region.current.name}.amazonaws.com/model/${var.embedding_model_name}/invoke"
         }
       }
     }

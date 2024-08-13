@@ -1,7 +1,7 @@
 locals {
   connector_spec = {
     name        = "${local.project}-embedding"
-    description = "Opensearch Connector for ${aws_sagemaker_endpoint.serverless_inference.name}"
+    description = "Opensearch Connector for ${var.embedding_model_name} via Amazon Bedrock"
     version     = 1
     protocol    = "aws_sigv4"
 
@@ -11,7 +11,8 @@ locals {
 
     parameters = {
       region       = data.aws_region.current.name
-      service_name = "sagemaker"
+      service_name = "bedrock"
+      model_name   = var.embedding_model_name
     }
 
     actions = [
@@ -23,9 +24,9 @@ locals {
           "content-type" = "application/json"
         }
 
-        url                   = local.embedding_invocation_url
-        post_process_function = file("${path.module}/opensearch_connector/post-process.painless")
-        request_body          = "{\"inputs\": $${parameters.input}}"
+        url                   = "https://bedrock-runtime.$${parameters.region}.amazonaws.com/model/$${parameters.model_name}/invoke"
+        post_process_function = file("${path.module}/opensearch_connector/cohere-post-process.painless")
+        request_body          = "{\"texts\": $${parameters.input}, \"input_type\": \"search_document\"}"
       }
     ]
   }
@@ -47,10 +48,10 @@ data "aws_iam_policy_document" "opensearch_connector_role" {
   statement {
     effect = "Allow"
     actions = [
-      "sagemaker:InvokeEndpoint",
-      "sagemaker:InvokeEndpointAsync"
+      "bedrock:InvokeModel",
+      "bedrock:InvokeModelWithResultStream"
     ]
-    resources = [aws_sagemaker_endpoint.serverless_inference.arn]
+    resources = ["*"]
   }
 }
 
@@ -103,7 +104,7 @@ module "deploy_model_lambda" {
   version = "~> 7.2.1"
 
   function_name         = "${local.project}-deploy-opensearch-ml-model"
-  description           = "Utility lambda to deploy a SageMaker model within Opensearch"
+  description           = "Utility lambda to deploy a Bedrock model within Opensearch"
   handler               = "index.handler"
   runtime               = "nodejs18.x"
   source_path           = "${path.module}/deploy_model_lambda"
@@ -129,7 +130,12 @@ resource "aws_lambda_invocation" "deploy_model" {
   input = jsonencode({
     namespace      = local.project
     connector_spec = local.connector_spec
-    model_name     = "huggingface/${var.model_repository}"
+    model_name     = var.embedding_model_name
     model_version  = "1.0.0"
   })
+}
+
+locals {
+  deploy_model_result = jsondecode(aws_lambda_invocation.deploy_model.result)
+  deploy_model_body   = jsondecode(local.deploy_model_result.body)
 }

@@ -250,6 +250,13 @@ data "aws_iam_policy_document" "developer_access" {
     actions   = ["sagemaker:InvokeEndpoint"]
     resources = ["*"]
   }
+
+  statement {
+    sid       = "DeveloperBedrockInvokeAccess"
+    effect    = "Allow"
+    actions   = ["bedrock:InvokeModel", "bedrock:InvokeModelWithResponseStream"]
+    resources = ["*"]
+  }
 }
 
 resource "aws_iam_policy" "developer_access" {

@@ -59,7 +59,7 @@ const findExisting = async (type, terms) => {
 const createModelGroup = async (namespace) => {
   const name = `${namespace}-model-group`;
 
-  const model_group_id = await findExisting("model_group", { "name": name });
+  const model_group_id = await findExisting("model_group", { name: name });
   if (model_group_id) return { model_group_id };
 
   return await fetch({
@@ -81,7 +81,7 @@ const createConnector = async (connector_spec) => {
 const updateConnector = async (connector_spec) => {
   connector_id = await findExisting("connector", { name: connector_spec.name });
   if (!connector_id) {
-    console.warn(`No existing connector named ${connector_spec.name}`)
+    console.warn(`No existing connector named ${connector_spec.name}`);
     return null;
   }
   model_id = await findExisting("model", { connector_id });
@@ -96,7 +96,7 @@ const updateConnector = async (connector_spec) => {
   if (model_id) {
     await deployModel(model_id);
   }
-  return result;
+  return { model_id };
 };
 
 const createModel = async (name, version, model_group_id, connector_id) => {
@@ -126,7 +126,7 @@ const undeployModel = async (model_id) => {
     method: "POST",
     path: `_plugins/_ml/models/${model_id}/_undeploy`
   });
-}
+};
 
 const create = async (event) => {
   const { model_group_id } = await createModelGroup(event.namespace);
@@ -137,23 +137,33 @@ const create = async (event) => {
     model_group_id,
     connector_id
   );
-  return { model_id }
+  return { model_id };
 };
 
 const destroy = async (event) => {
   let connector_id, model_id;
   try {
-    connector_id = await findExisting("connector", { name: event.connector_spec.name });
+    connector_id = await findExisting("connector", {
+      name: event.connector_spec.name
+    });
     if (connector_id) {
       model_id = await findExisting("model", { connector_id });
       if (model_id) {
-        await fetch({ method: "POST", path: `_plugins/_ml/models/${model_id}/_undeploy` });
-        await fetch({ method: "DELETE", path: `_plugins/_ml/models/${model_id}` });
+        await fetch({
+          method: "POST",
+          path: `_plugins/_ml/models/${model_id}/_undeploy`
+        });
+        await fetch({
+          method: "DELETE",
+          path: `_plugins/_ml/models/${model_id}`
+        });
       }
-      await fetch({ method: "DELETE", path: `_plugins/_ml/connectors/${connector_id}` });
+      await fetch({
+        method: "DELETE",
+        path: `_plugins/_ml/connectors/${connector_id}`
+      });
     }
-  } catch (err) {
-  }
+  } catch (err) {}
   return { connector_id, model_id };
 };
 
@@ -166,7 +176,7 @@ const handler = async (event) => {
     let body;
     console.log("Handling", event.tf.action, "event");
     switch (event.tf.action) {
-      case "create": 
+      case "create":
         body = await create(event);
         break;
       case "update":
@@ -182,4 +192,10 @@ const handler = async (event) => {
   }
 };
 
-module.exports = { handler, findExisting, deployModel, undeployModel, updateConnector };
+module.exports = {
+  handler,
+  findExisting,
+  deployModel,
+  undeployModel,
+  updateConnector
+};

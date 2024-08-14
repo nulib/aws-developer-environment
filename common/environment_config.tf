@@ -27,9 +27,10 @@ locals {
     }
 
     search = {
-      cluster_endpoint   = "https://${aws_opensearch_domain.search_index.endpoint}"
-      dashboard_endpoint = "https://${aws_opensearch_domain.search_index.dashboard_endpoint}"
-      embedding_model_id = lookup(local.deploy_model_body, "model_id", "DEPLOY ERROR")
+      cluster_endpoint     = "https://${aws_opensearch_domain.search_index.endpoint}"
+      dashboard_endpoint   = "https://${aws_opensearch_domain.search_index.dashboard_endpoint}"
+      embedding_model_id   = lookup(local.deploy_model_body, "model_id", "DEPLOY ERROR")
+      embedding_dimensions = var.embedding_dimensions
     }
 
     ldap = merge(var.ldap_config, {

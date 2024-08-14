@@ -46,6 +46,7 @@ resource "aws_opensearch_domain" "search_index" {
   domain_name           = local.opensearch_domain
   engine_version        = "OpenSearch_2.13"
   advanced_options      = {
+    "override_main_response_version"         = "true"
     "rest.action.multi.allow_explicit_index" = "true"
   }  
   cluster_config {

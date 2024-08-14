@@ -29,6 +29,12 @@ locals {
         request_body          = "{\"texts\": $${parameters.input}, \"input_type\": \"search_document\"}"
       }
     ]
+
+    client_config = {
+      max_connection        = 200
+      connection_timeout    = 5000
+      read_timeout          = 60000
+    }
   }
 }
 

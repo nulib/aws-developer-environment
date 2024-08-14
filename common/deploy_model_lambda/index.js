@@ -23,7 +23,6 @@ const fetch = async (params) => {
   });
 
   const response = await awsFetch(request);
-  console.log(`${request.method} ${request.path}\n${response}`);
   const { statusCode, body } = response;
   if (statusCode >= 200 && statusCode <= 299) {
     return JSON.parse(body);
@@ -79,6 +78,27 @@ const createConnector = async (connector_spec) => {
   });
 };
 
+const updateConnector = async (connector_spec) => {
+  connector_id = await findExisting("connector", { name: connector_spec.name });
+  if (!connector_id) {
+    console.warn(`No existing connector named ${connector_spec.name}`)
+    return null;
+  }
+  model_id = await findExisting("model", { connector_id });
+  if (model_id) {
+    await undeployModel(model_id);
+  }
+  const result = await fetch({
+    method: "PUT",
+    path: `_plugins/_ml/connectors/${connector_id}`,
+    body: JSON.stringify(connector_spec)
+  });
+  if (model_id) {
+    await deployModel(model_id);
+  }
+  return result;
+};
+
 const createModel = async (name, version, model_group_id, connector_id) => {
   return await fetch({
     path: "_plugins/_ml/models/_register",
@@ -93,6 +113,20 @@ const createModel = async (name, version, model_group_id, connector_id) => {
     })
   });
 };
+
+const deployModel = async (model_id) => {
+  return await fetch({
+    method: "POST",
+    path: `_plugins/_ml/models/${model_id}/_deploy`
+  });
+};
+
+const undeployModel = async (model_id) => {
+  return await fetch({
+    method: "POST",
+    path: `_plugins/_ml/models/${model_id}/_undeploy`
+  });
+}
 
 const create = async (event) => {
   const { model_group_id } = await createModelGroup(event.namespace);
@@ -124,13 +158,13 @@ const destroy = async (event) => {
 };
 
 const update = async (event) => {
-  await destroy(event.tf.prev_input);
-  return await create(event);
+  return await updateConnector(event.connector_spec);
 };
 
 const handler = async (event) => {
   try {
     let body;
+    console.log("Handling", event.tf.action, "event");
     switch (event.tf.action) {
       case "create": 
         body = await create(event);
@@ -148,4 +182,4 @@ const handler = async (event) => {
   }
 };
 
-module.exports = { handler };
+module.exports = { handler, findExisting, deployModel, undeployModel, updateConnector };

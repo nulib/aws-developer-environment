@@ -49,3 +49,7 @@ variable "dc_api_secret" {
 variable "embedding_model_name" {
   type    = string
 }
+
+variable "embedding_dimensions" {
+  type    = number
+}

@@ -23,10 +23,12 @@ resource "aws_serverlessapplicationrepository_cloudformation_stack" "iiif_server
   depends_on = [aws_acm_certificate_validation.wildcard_cert_validation]
 
   name           = "${local.project}-iiif-server"
-  application_id = "arn:aws:serverlessrepo:us-east-1:625046682746:applications/serverless-iiif"
+  application_id = "arn:aws:serverlessrepo:us-east-1:625046682746:applications/serverless-iiif-cloudfront"
+  semantic_version = "5.0.6"
   capabilities = [
     "CAPABILITY_IAM",
     "CAPABILITY_RESOURCE_POLICY",
+    "CAPABILITY_AUTO_EXPAND"
   ]
   parameters = {
     CacheDomainName       = "iiif.${aws_route53_zone.hosted_zone.name}"

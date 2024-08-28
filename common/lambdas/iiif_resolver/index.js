@@ -9,7 +9,7 @@ const getEventHeader = (request, name) => {
 const viewerRequest = (event) => {
   const { request } = event.Records[0].cf;
   const path = decodeURI(request.uri.replace(/%2f/gi, ''));
-  const [prefix, poster, id] = path.match(/^\/iiif\/2\/([^/]+)\/(posters\/)?([^/]+)/).slice(-3);
+  const [prefix, poster, id] = path.match(/^\/iiif\/(2|3)\/([^/]+)\/(posters\/)?([^/]+)/).slice(-3);
   const pairtree = id.match(/.{1,2}/g).join('/');
   const tiffBucket = [prefix, "pyramids"].join("-");
   const s3Location = poster ? `s3://${tiffBucket}/posters/${pairtree}-poster.tif` : `s3://${tiffBucket}/${pairtree}-pyramid.tif`;

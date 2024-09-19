@@ -290,6 +290,28 @@ resource "aws_iam_instance_profile" "ide_instance_profile" {
   role    = aws_iam_role.ide_instance_role.name
 }
 
+resource "aws_iam_role" "assumed_ide_role" {
+  name    = "${local.prefix}-delegate-role"
+  path    = local.iam_path
+
+  assume_role_policy = jsonencode({
+    Version   = "2012-10-17"
+    Statement = [{
+      Sid       = ""
+      Effect    = "Allow"
+      Action    = "sts:AssumeRole"
+      Principal = {
+        AWS = aws_iam_role.ide_instance_role.arn
+      }
+    }]
+  })
+}
+
+resource "aws_iam_role_policy_attachment" "developer_access_assumed_ide" {
+  role          = aws_iam_role.assumed_ide_role.name
+  policy_arn    = aws_iam_policy.developer_access.arn
+}
+
 resource "aws_ssm_parameter" "ide_config" {
   for_each = {
     instance_role_name    = aws_iam_role.ide_instance_role.name

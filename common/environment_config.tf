@@ -16,7 +16,7 @@ locals {
     }
 
     iiif = {
-      distribution_id = data.aws_cloudfront_distribution.iiif_server.id
+      distribution_id = aws_cloudfront_distribution.iiif_server.id
     }
 
     index = {

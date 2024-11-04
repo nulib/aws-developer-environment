@@ -23,6 +23,7 @@ locals {
     }
 
     ldap = merge(var.ldap_config, {
+      port = tonumber(var.ldap_config["port"])
       host = join(".", [aws_service_discovery_service.ldap.name, aws_service_discovery_private_dns_namespace.internal.name])
     })
 

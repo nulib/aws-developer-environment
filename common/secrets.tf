@@ -13,6 +13,12 @@ locals {
       models      = { default = lookup(local.deploy_model_body, "model_id", "DEPLOY ERROR") }
     }
 
+    iiif = {
+      base = "https://iiif.${aws_route53_zone.hosted_zone.name}/"
+      v2 = "https://iiif.${aws_route53_zone.hosted_zone.name}/iiif/v2/"
+      v3 = "https://iiif.${aws_route53_zone.hosted_zone.name}/iiif/v3/"
+    }
+  
     inference = {
       endpoints = { 
         default = {    

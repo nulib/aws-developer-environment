@@ -14,9 +14,10 @@ locals {
     }
 
     index = {
-      endpoint    = "https://${aws_opensearch_domain.search_index.endpoint}"
-      dashboard   = "https://${aws_opensearch_domain.search_index.dashboard_endpoint}"
-      models      = { default = lookup(local.deploy_model_body, "model_id", "DEPLOY ERROR") }
+      endpoint                = "https://${aws_opensearch_domain.search_index.endpoint}"
+      dashboard               = "https://${aws_opensearch_domain.search_index.dashboard_endpoint}"
+      embedding_model         = lookup(local.deploy_model_body, "model_id", "DEPLOY ERROR")
+      embedding_dimensions    = var.embedding_dimensions
     }
 
     iiif = {
@@ -27,8 +28,9 @@ locals {
     }
 
     inference = {
-      model_name  = var.embedding_model_name
+      name        = var.embedding_model_name
       endpoint    = "https://bedrock-runtime.${data.aws_region.current.name}.amazonaws.com/model/${var.embedding_model_name}/invoke"
+      dimensions  = var.embedding_dimensions
     }
 
     ldap = merge(var.ldap_config, {

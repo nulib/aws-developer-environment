@@ -176,7 +176,7 @@ data "aws_iam_policy_document" "developer_access" {
   statement {
     sid       = "DeveloperSecretsAccess"
     effect    = "Allow"
-    actions   = ["secretsmanager:Get*"]
+    actions   = ["secretsmanager:BatchGet*", "secretsmanager:Get*"]
     resources = [
       "arn:aws:secretsmanager:${local.regional_id}:secret:${local.owner}/*",
       "arn:aws:secretsmanager:${local.regional_id}:secret:${local.project}/*"

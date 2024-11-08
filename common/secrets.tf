@@ -48,6 +48,12 @@ locals {
       key         = fileexists(var.ssl_key_file) ? file(var.ssl_key_file) : ""
     }
   }, var.config_secrets)
+
+  dcapi = {
+    base_url         = var.dc_api_url
+    api_token_secret = var.dc_api_secret
+    api_token_ttl    = tonumber(var.dc_api_ttl)
+  }    
 }
 
 resource "aws_secretsmanager_secret" "infrastructure" {
@@ -60,6 +66,16 @@ resource "aws_secretsmanager_secret_version" "infrastructure" {
   for_each      = local.secrets
   secret_id     = aws_secretsmanager_secret.infrastructure[each.key].id
   secret_string = jsonencode(each.value)
+}
+
+resource "aws_secretsmanager_secret" "dcapi" {
+  name        = "${local.project}/config/dcapi"
+  description = "DC API Configuration"
+}
+
+resource "aws_secretsmanager_secret_version" "dcapi" {
+  secret_id     = aws_secretsmanager_secret.dcapi.id
+  secret_string = jsonencode(local.dcapi)
 }
 
 resource "aws_secretsmanager_secret" "ssl_certificate" {

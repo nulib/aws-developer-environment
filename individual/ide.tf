@@ -176,7 +176,7 @@ data "aws_iam_policy_document" "developer_access" {
   statement {
     sid       = "DeveloperSecretsAccess"
     effect    = "Allow"
-    actions   = ["secretsmanager:Get*"]
+    actions   = ["secretsmanager:BatchGet*", "secretsmanager:Get*"]
     resources = [
       "arn:aws:secretsmanager:${local.regional_id}:secret:${local.owner}/*",
       "arn:aws:secretsmanager:${local.regional_id}:secret:${local.project}/*"
@@ -288,6 +288,28 @@ resource "aws_iam_role_policy_attachment" "cloud9_ssm_policy" {
 resource "aws_iam_instance_profile" "ide_instance_profile" {
   name = "${local.prefix}-ide-instance-profile"
   role    = aws_iam_role.ide_instance_role.name
+}
+
+resource "aws_iam_role" "assumed_ide_role" {
+  name    = "${local.prefix}-delegate-role"
+  path    = local.iam_path
+
+  assume_role_policy = jsonencode({
+    Version   = "2012-10-17"
+    Statement = [{
+      Sid       = ""
+      Effect    = "Allow"
+      Action    = "sts:AssumeRole"
+      Principal = {
+        AWS = aws_iam_role.ide_instance_role.arn
+      }
+    }]
+  })
+}
+
+resource "aws_iam_role_policy_attachment" "developer_access_assumed_ide" {
+  role          = aws_iam_role.assumed_ide_role.name
+  policy_arn    = aws_iam_policy.developer_access.arn
 }
 
 resource "aws_ssm_parameter" "ide_config" {

@@ -2,38 +2,17 @@ locals {
   iiif_server_hostname = "iiif.${aws_route53_zone.hosted_zone.name}"
 }
 
-module "resolver_lambda" {
-  source    = "terraform-aws-modules/lambda/aws"
-  version   = "~> 7.0"
-  
-  function_name   = "${local.project}-iiif-resolver"
-  description     = "viewer-request function for resolving IIIF requests"
-  handler         = "index.handler"
-  memory_size     = 128
-  runtime         = "nodejs16.x"
-  timeout         = 3
-  role_path       = local.iam_path
-  lambda_at_edge  = true
-
-  source_path = [
-    {
-      path     = "${path.module}/lambdas/iiif_resolver"
-      commands = [":zip"]
-    }
-  ]
-}
-
-resource "aws_lambda_permission" "allow_cloudfront" {
-  statement_id  = "AllowExecutionFromCloudFront"
-  action        = "lambda:InvokeFunction"
-  function_name = module.resolver_lambda.lambda_function_name
-  principal     = "cloudfront.amazonaws.com"
-  source_arn    = aws_cloudfront_distribution.iiif_server.arn
+resource "aws_cloudfront_function" "resolver_function" {
+  name = "${local.project}-iiif-resolver"
+  runtime = "cloudfront-js-2.0"
+  comment = "Function to set the correct S3 location for dev environment IIIF requests"
+  publish = true
+  code = file("${path.module}/lambdas/iiif_resolver/index.js")
 }
 
 locals {
   serverless_iiif_app_id        = "arn:aws:serverlessrepo:us-east-1:625046682746:applications/serverless-iiif"
-  serverless_iiif_app_version   = "5.0.6"
+  serverless_iiif_app_version   = "5.1.1"
 }
 
 resource "aws_serverlessapplicationrepository_cloudformation_stack" "serverless_iiif" {
@@ -81,6 +60,25 @@ resource "aws_cloudfront_response_headers_policy" "iiif_server" {
   }
 }
 
+resource "aws_cloudfront_origin_request_policy" "iiif_server" {
+  name = "${local.project}-allow-preflight-headers"
+  comment = "Allows IIIF preflight headers"
+  cookies_config {
+    cookie_behavior = "none"
+  }
+
+  headers_config {
+    header_behavior = "whitelist"
+    headers {
+      items = ["origin", "x-preflight-location", "x-preflight-dimensions"]
+    }
+  }
+
+  query_strings_config {
+    query_string_behavior = "none"
+  }
+}
+
 resource "aws_cloudfront_distribution" "iiif_server" {
   enabled       = true
   price_class   = "PriceClass_100"
@@ -110,18 +108,17 @@ resource "aws_cloudfront_distribution" "iiif_server" {
     allowed_methods               = ["GET", "HEAD", "OPTIONS"]
     cached_methods                = ["GET", "HEAD"]
     cache_policy_id               = "658327ea-f89d-4fab-a63d-7e88639e58f6"
+    origin_request_policy_id      = aws_cloudfront_origin_request_policy.iiif_server.id
     response_headers_policy_id    = aws_cloudfront_response_headers_policy.iiif_server.id
 
-    lambda_function_association {
+    function_association {
       event_type    = "viewer-request"
-      lambda_arn    = module.resolver_lambda.lambda_function_qualified_arn
-      include_body  = false
+      function_arn  = aws_cloudfront_function.resolver_function.arn
     }
 
-    lambda_function_association {
+    function_association {
       event_type    = "viewer-response"
-      lambda_arn    = module.resolver_lambda.lambda_function_qualified_arn
-      include_body  = false
+      function_arn  = aws_cloudfront_function.resolver_function.arn
     }
   }
 

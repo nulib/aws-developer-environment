@@ -178,6 +178,7 @@ data "aws_iam_policy_document" "developer_access" {
     effect    = "Allow"
     actions   = ["secretsmanager:BatchGet*", "secretsmanager:Get*"]
     resources = [
+      "arn:aws:secretsmanager:${local.regional_id}:secret:*",
       "arn:aws:secretsmanager:${local.regional_id}:secret:${local.owner}/*",
       "arn:aws:secretsmanager:${local.regional_id}:secret:${local.project}/*"
     ]

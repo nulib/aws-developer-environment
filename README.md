@@ -4,7 +4,10 @@
 
 ### Prerequisites
 
-- Make sure you have [`aws sso login`](http://docs.rdc.library.northwestern.edu/2._Developer_Guides/Environment_and_Tools/AWS-Authentication/) set up properly on your local system.
+- Make sure you have [`aws sso login`](http://docs.rdc.library.northwestern.edu/2._Developer_Guides/Environment_and_Tools/AWS-Authentication/) 
+  set up properly on your local system.
+- You will need an [SSH Key Pair](https://docs.github.com/en/authentication/connecting-to-github-with-ssh/adding-a-new-ssh-key-to-your-github-account)
+  with the public key added to your GitHub account.
 
 ### One-Time Setup
 
@@ -18,22 +21,31 @@
    ```
    If not, or if `~/.bash_profile` doesn't exist, create or update it as necessary.
 2. Install the [AWS SSM Session Manager Plugin](https://docs.aws.amazon.com/systems-manager/latest/userguide/session-manager-working-with-install-plugin.html#install-plugin-macos)
-2. Add the IDE access key pair to your AWS configuration
+3. Add the IDE access key pair to your AWS configuration
    ```shell
    bash <(curl -s https://raw.githubusercontent.com/nulib/aws-developer-environment/main/individual/support/dev_environment_profile.sh)
    ```
    (You may be prompted to log into AWS by the SSO login handler.)
-3. Copy the [SSH Proxy Script](individual/support/nul-ssm-proxy.sh) to the `~/.ssh` directory of the user who will be using the new environment.
-4. `chmod 0755 ~/.ssh/nul-ssm-proxy.sh`
-5. Add the following stanza to the user's `~/.ssh/config`:
+4. Copy the [SSH Proxy Script](individual/support/nul-ssm-proxy.sh) to the `~/.ssh` directory of the user who will be using the new environment.
+5. `chmod 0755 ~/.ssh/nul-ssm-proxy.sh`
+6. Add the following stanza to the user's `~/.ssh/config`:
    ```
-   Host *.dev.rdc.library.northwestern.edu
+   Match host *.dev.rdc.library.northwestern.edu
      User ec2-user
      ForwardAgent yes
+     AddKeysToAgent yes
+     UseKeychain yes
      StrictHostKeyChecking no
      UserKnownHostsFile /dev/null
      ProxyCommand sh -c "~/.ssh/nul-ssm-proxy.sh %h %p"
    ```
+7. In order to work seamlessly with SSH and agent forwarding, you'll also need to add the
+   private key to the native SSH Agent:
+   ```shell
+   ssh-add --apple-use-keychain ~/.ssh/id_ed25519 # or wherever your private key is stored
+   ```
+   If your private key has a passphrase, `ssh-add` will prompt for it and add it to
+   local MacOS keychain so that it can access it without prompting in the future.
 
 ### Connecting
 
@@ -43,15 +55,11 @@
   - Directly via SSH at `DEV_ID.dev.rdc.library.northwestern.edu`
 - This hostname can also be used to connect a [Visual Studio Code Remote SSH](https://code.visualstudio.com/docs/remote/ssh) session
   - The Remote SSH extension's Connect Timeout setting should be changed from the default (15 seconds) to at least 120 seconds.
-- For convenience, you can create one or more aliases in `~/.ssh/config` by copying the `*.dev.rdc.library.northwestern.edu` stanza and adding a `HostName`:
+- For convenience, you can create one or more hostname aliases in `~/.ssh/config` by adding stanzas _above_ the previous
+  `Match host` stanza:
   ```
   Host dev
-    HostName devid.dev.rdc.library.northwestern.edu
-    User ec2-user
-    ForwardAgent yes
-    StrictHostKeyChecking no
-    UserKnownHostsFile /dev/null
-    ProxyCommand sh -c "~/.ssh/nul-ssm-proxy.sh %h %p"
+    HostName DEV_ID.dev.rdc.library.northwestern.edu
   ```
 
 ### Navigating the IDE

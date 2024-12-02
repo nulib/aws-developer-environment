@@ -49,10 +49,7 @@
 
 ### Connecting
 
-- Developer environments can be accessed two different ways:
-  - Using the [AWS Cloud9 Console](https://us-east-1.console.aws.amazon.com/cloud9/home/shared)
-    - The environment is *probably* listed under **Shared with you** rather than **Your environments**
-  - Directly via SSH at `DEV_ID.dev.rdc.library.northwestern.edu`
+- Developer environments can be accessed directly via SSH at `DEV_ID.dev.rdc.library.northwestern.edu`
 - This hostname can also be used to connect a [Visual Studio Code Remote SSH](https://code.visualstudio.com/docs/remote/ssh) session
   - The Remote SSH extension's Connect Timeout setting should be changed from the default (15 seconds) to at least 120 seconds.
 - For convenience, you can create one or more hostname aliases in `~/.ssh/config` by adding stanzas _above_ the previous

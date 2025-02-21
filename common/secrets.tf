@@ -29,8 +29,8 @@ locals {
 
     iiif = {
       base = "https://iiif.${aws_route53_zone.hosted_zone.name}/"
-      v2 = "https://iiif.${aws_route53_zone.hosted_zone.name}/iiif/v2/"
-      v3 = "https://iiif.${aws_route53_zone.hosted_zone.name}/iiif/v3/"
+      v2 = "https://iiif.${aws_route53_zone.hosted_zone.name}/iiif/2/"
+      v3 = "https://iiif.${aws_route53_zone.hosted_zone.name}/iiif/3/"
     }
   
     inference = {

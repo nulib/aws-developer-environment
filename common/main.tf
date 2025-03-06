@@ -33,3 +33,5 @@ locals {
 resource "aws_s3_bucket" "dev_environment_shared_bucket" {
   bucket = "nul-${local.project}-shared"
 }
+
+data "aws_caller_identity" "current" {}

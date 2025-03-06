@@ -30,6 +30,10 @@ variable "ssl_key_file" {
   type    = string
 }
 
+variable "acme_cert_actions_repos" {
+  type    = list(string)
+}
+
 variable "acme_cert_state_store" {
   type    = map(string)
 }

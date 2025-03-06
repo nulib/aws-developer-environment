@@ -26,6 +26,15 @@ resource "aws_secretsmanager_secret_version" "output_parameter" {
   })
 }
 
+output "github_actions_secrets" {
+  value = {
+    ACME_DATA_STORE   = "s3://${var.acme_cert_state_store.bucket}/${var.acme_cert_state_store.key}",
+    AWS_ROLE_ARN      = aws_iam_role.acme_cert_github_role.arn,
+    CERT_DOMAIN       = var.hosted_zone_name,
+    SECRET_PATH       = "${local.project}/config/wildcard_ssl"
+  }
+}
+
 output "search_snapshot_configuration" {
   value = {
     create_url    = "https://${aws_opensearch_domain.search_index.endpoint}/_snapshot/${local.project}-index-snapshots"

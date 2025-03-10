@@ -52,13 +52,13 @@ data "aws_iam_policy_document" "github_actions_assume_role_policy" {
   statement {
     sid       = "GitHubActionsAssumeRole"
     effect    = "Allow"
-    actions   = ["sts:AssumeRole"]
+    actions   = ["sts:AssumeRoleWithWebIdentity"]
     principals {
       type        = "Federated"
       identifiers = ["arn:aws:iam::${data.aws_caller_identity.current.account_id}:oidc-provider/token.actions.githubusercontent.com"]
     }
     condition {
-      test     = "StringEquals"
+      test     = "StringLike"
       variable = "token.actions.githubusercontent.com:sub"
       values   = [
         for repo in var.acme_cert_actions_repos : "repo:${repo}:*"

@@ -114,15 +114,10 @@ module "deploy_model_lambda" {
   handler               = "index.handler"
   runtime               = "nodejs18.x"
   source_path           = "${path.module}/deploy_model_lambda"
-  timeout               = 30
+  timeout               = 60
   attach_policy_json    = true
   attach_network_policy = true
   policy_json           = data.aws_iam_policy_document.deploy_model_lambda.json
-  vpc_subnet_ids        = module.vpc.private_subnets
-  vpc_security_group_ids = [
-    module.vpc.default_security_group_id,
-    aws_security_group.lambda_outbound.id
-  ]
 
   environment_variables = {
     OPENSEARCH_ENDPOINT = aws_opensearch_domain.search_index.endpoint

@@ -10,7 +10,7 @@ data "aws_iam_policy_document" "search_index_http_access" {
     actions   = ["es:*"]
     principals {
       type        = "AWS"
-      identifiers = ["*"]
+      identifiers = ["arn:aws:iam::${data.aws_caller_identity.current.account_id}:root"]
     }
     
     # Can't simply use "${aws_opensearch_domain.search_index.arn}/*" here because
@@ -25,11 +25,12 @@ resource "aws_security_group" "search_index" {
   vpc_id      = module.vpc.vpc_id
 
  ingress {
-    description      = "HTTPS from VPC"
+    description      = "HTTPS from Anywhere"
     from_port        = 443
     to_port          = 443
     protocol         = "tcp"
-    cidr_blocks      = [module.vpc.vpc_cidr_block]
+    cidr_blocks      = ["0.0.0.0/0"]
+    ipv6_cidr_blocks = ["::/0"]
   }
 
   egress {
@@ -56,11 +57,6 @@ resource "aws_opensearch_domain" "search_index" {
   ebs_options {
     ebs_enabled = "true"
     volume_size = 30
-  }
-
-  vpc_options {
-    security_group_ids    = [aws_security_group.search_index.id]
-    subnet_ids            = [module.vpc.private_subnets[0]]
   }
 
   access_policies = data.aws_iam_policy_document.search_index_http_access.json

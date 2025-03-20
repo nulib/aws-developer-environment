@@ -99,6 +99,14 @@ resource "aws_security_group_rule" "ide_instance_security_group_egress" {
   protocol            = "all"
 }
 
+data "aws_iam_role" "mediaconvert_default_role" {
+  name = "MediaConvert_Default_Role"
+}
+
+data "aws_ses_email_identity" "repository_email" {
+  email = var.repository_email
+}
+
 resource "aws_iam_role" "ide_instance_role" {
   name    = "${local.prefix}-ide-instance-role"
   path    = local.iam_path
@@ -221,7 +229,8 @@ data "aws_iam_policy_document" "developer_access" {
     resources = [
       local.common_config.elasticsearch_snapshot_role,
       local.common_config.transcode_role,
-      data.aws_iam_role.pipeline_lambda_role.arn
+      data.aws_iam_role.pipeline_lambda_role.arn,
+      data.aws_iam_role.mediaconvert_default_role.arn
     ]
   }
 
@@ -237,9 +246,9 @@ data "aws_iam_policy_document" "developer_access" {
       "ecs:UpdateService"
     ]
     resources = [
-      "arn:aws:ecs:us-east-1:625046682746:cluster/dev-environment",
-      "arn:aws:ecs:us-east-1:625046682746:service/dev-environment/*",
-      "arn:aws:ecs:us-east-1:625046682746:task/dev-environment/*",
+      "arn:aws:ecs:us-east-1:${data.aws_caller_identity.current_user.id}:cluster/dev-environment",
+      "arn:aws:ecs:us-east-1:${data.aws_caller_identity.current_user.id}:service/dev-environment/*",
+      "arn:aws:ecs:us-east-1:${data.aws_caller_identity.current_user.id}:task/dev-environment/*",
     ]
   }
 
@@ -264,6 +273,16 @@ data "aws_iam_policy_document" "developer_access" {
     effect    = "Allow"
     actions   = ["bedrock:InvokeModel", "bedrock:InvokeModelWithResponseStream"]
     resources = ["*"]
+  }
+
+  statement {
+    sid       = "DeveloperSendEmailAsRepository"
+    effect    = "Allow"
+    actions   = ["ses:Send*"]
+    resources = [
+      data.aws_ses_email_identity.repository_email.arn,
+      "arn:aws:ses:us-east-1:${data.aws_caller_identity.current_user.id}:template/*"
+    ]
   }
 }
 

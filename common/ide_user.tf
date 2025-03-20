@@ -45,7 +45,7 @@ data "aws_iam_policy_document" "ide_session_policy" {
   statement {
     effect    = "Allow"
     actions   = ["ssm:TerminateSession"]
-    resources = ["arn:aws:ssm:us-east-1:625046682746:session/*"]
+    resources = ["arn:aws:ssm:us-east-1:${data.aws_caller_identity.current_user.id}:session/*"]
   }
 
   statement {

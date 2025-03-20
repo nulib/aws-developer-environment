@@ -11,7 +11,7 @@ resource "aws_cloudfront_function" "resolver_function" {
 }
 
 locals {
-  serverless_iiif_app_id        = "arn:aws:serverlessrepo:us-east-1:625046682746:applications/serverless-iiif"
+  serverless_iiif_app_id        = "arn:aws:serverlessrepo:us-east-1:${data.aws_caller_identity.current_user.id}:applications/serverless-iiif"
   serverless_iiif_app_version   = "5.1.4"
 }
 

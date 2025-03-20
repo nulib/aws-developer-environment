@@ -8,6 +8,10 @@ variable "ide_instance_type" {
   default = "m5.large"
 }
 
+variable "repository_email" {
+  type    = string
+}
+
 variable "user_tags" {
   type    = map(map(string))
 }

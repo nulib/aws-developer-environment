@@ -5,7 +5,7 @@ variable "environments" {
 
 variable "ide_instance_type" {
   type    = string
-  default = "m5.large"
+  default = "m5.xlarge"
 }
 
 variable "repository_email" {

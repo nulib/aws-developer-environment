@@ -271,8 +271,12 @@ data "aws_iam_policy_document" "developer_access" {
   statement {
     sid       = "DeveloperBedrockInvokeAccess"
     effect    = "Allow"
-    actions   = ["bedrock:InvokeModel", "bedrock:InvokeModelWithResponseStream"]
-    resources = ["*"]
+    actions   = [
+      "bedrock:InvokeModel",
+      "bedrock:InvokeModelWithResponseStream",
+      "bedrock:CreateModelInvocationJob"
+    ]
+    resources = ["arn:aws:bedrock:*::foundation-model/*"]
   }
 
   statement {

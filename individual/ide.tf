@@ -272,11 +272,22 @@ data "aws_iam_policy_document" "developer_access" {
     sid       = "DeveloperBedrockInvokeAccess"
     effect    = "Allow"
     actions   = [
-      "bedrock:InvokeModel",
+      "bedrock:GetInferenceProfile",
+      "bedrock:ListInferenceProfiles",
+      "bedrock:DeleteInferenceProfile",
+      "bedrock:TagResource",
+      "bedrock:UntagResource",
+      "bedrock:ListTagsForResource",
+      "bedrock:InvokeModel*",
       "bedrock:InvokeModelWithResponseStream",
-      "bedrock:CreateModelInvocationJob"
+      "bedrock:CreateModelInvocationJob",
+      "bedrock:CreateInferenceProfile",
     ]
-    resources = ["arn:aws:bedrock:*::foundation-model/*"]
+    resources = [
+      "arn:aws:bedrock:*::foundation-model/*",
+      "arn:aws:bedrock:*:*:inference-profile/*",
+      "arn:aws:bedrock:*:*:application-inference-profile/*"
+    ]
   }
 
   statement {

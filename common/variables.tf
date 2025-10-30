@@ -17,11 +17,6 @@ variable "staging_vpc_id" {
 variable "config_secrets" {
   type    = map(map(any))
 }
-
-variable "ldap_config" {
-  type    = map(any)
-}
-
 variable "ssl_certificate_file" {
   type    = string
 }

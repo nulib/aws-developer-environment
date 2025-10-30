@@ -4,7 +4,7 @@ module "aurora_postgresql" {
 
   name                                = "${local.project}-db-cluster"
   engine                              = "aurora-postgresql"
-  engine_version                      = "16.1"
+  engine_version                      = "16.8"
   engine_mode                         = "provisioned"
   vpc_id                              = module.vpc.vpc_id
   subnets                             = module.vpc.public_subnets

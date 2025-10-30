@@ -7,6 +7,10 @@ locals {
       password = module.aurora_postgresql.cluster_master_password
     }
 
+    logging = {
+      log_group = aws_cloudwatch_log_group.dev_environment.name
+    }
+
     pipeline = {
       for key in keys(local.pipeline) :
       key => module.pipeline_lambda[key].lambda_function_qualified_arn

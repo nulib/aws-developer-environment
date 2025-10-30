@@ -1,3 +1,11 @@
+data "aws_iam_role" "task_execution_role" {
+  name = "ecsTaskExecutionRole"
+}
+
+resource "aws_ecs_cluster" "dev_environment" {
+  name = local.project
+}
+
 resource "aws_security_group" "samvera_stack_service" {
   name        = "${local.project}-solr-service"
   description = "Fedora/Solr Service Security Group"

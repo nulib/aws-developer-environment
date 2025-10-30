@@ -45,13 +45,13 @@ resource "aws_security_group" "search_index" {
   
 resource "aws_opensearch_domain" "search_index" {
   domain_name           = local.opensearch_domain
-  engine_version        = "OpenSearch_2.13"
+  engine_version        = "OpenSearch_2.19"
   advanced_options      = {
     "override_main_response_version"         = "true"
     "rest.action.multi.allow_explicit_index" = "true"
   }  
   cluster_config {
-    instance_type  = "m6g.large.search"
+    instance_type  = "or1.large.search"
     instance_count = 1
   }
   ebs_options {

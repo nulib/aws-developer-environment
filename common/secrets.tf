@@ -39,11 +39,6 @@ locals {
       dimensions  = var.embedding_dimensions
     }
 
-    ldap = merge(var.ldap_config, {
-      host = join(".", [aws_service_discovery_service.ldap.name, aws_service_discovery_private_dns_namespace.internal.name]),
-      port = tonumber(var.ldap_config["port"])
-    })
-
     solrcloud = {
       solr_url = "http://${local.samvera_stack_host}:8983/solr"
       zookeeper_servers = ["${local.samvera_stack_host}:9983"]

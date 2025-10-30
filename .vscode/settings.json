@@ -1,0 +1,10 @@
+{
+  "erlang.erlangPath": "/home/ec2-user/.local/share/mise/installs/erlang/27.3/bin",
+  "java.jdt.ls.java.home": "/home/ec2-user/.local/share/mise/installs/java/corretto-19.0.1.10.1",
+  "java.import.gradle.java.home": "/home/ec2-user/.local/share/mise/installs/java/corretto-19.0.1.10.1",
+  "bun.runtime": "/home/ec2-user/.local/share/mise/shims/bun",
+  "debug.javascript.defaultRuntimeExecutable": {
+    "pwa-node": "/home/ec2-user/.local/share/mise/shims/node"
+  },
+  "python.defaultInterpreterPath": "/home/ec2-user/.local/share/mise/installs/python/3.12.2/bin/python"
+}

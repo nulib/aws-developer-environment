@@ -107,7 +107,7 @@ resource "aws_security_group_rule" "lambda_outbound" {
 
 module "deploy_model_lambda" {
   source  = "terraform-aws-modules/lambda/aws"
-  version = "~> 7.2.1"
+  version = "~> 3.1"
 
   function_name         = "${local.project}-deploy-opensearch-ml-model"
   description           = "Utility lambda to deploy a Bedrock model within Opensearch"

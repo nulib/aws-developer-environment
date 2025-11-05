@@ -129,7 +129,7 @@ module "pipeline_lambda" {
   version     = "~> 3.1"
   
   function_name             = "${local.project}-${each.value.source}"
-  build_in_docker           = true
+  # build_in_docker           = true
   description               = each.value.description
   handler                   = "index.handler"
   ephemeral_storage_size    = contains(keys(each.value), "ephemeral_storage") ? each.value.ephemeral_storage : 512
@@ -146,7 +146,7 @@ module "pipeline_lambda" {
   source_path = [
     {
       path = "${var.lambda_path}/${each.value.source}",
-      commands = [ "npm ci --only prod", ":zip" ]
+      commands = [ "npm ci", ":zip" ]
     }
   ]
 

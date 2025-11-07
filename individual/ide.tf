@@ -1,7 +1,6 @@
 data "aws_ami" "fedora_linux" {
   most_recent   = true
   owners        = [125523088429]
-  name_regex    = "^Fedora-Cloud-Base-39-.+-gp3-.+$"
   filter {
     name = "architecture"
     values = ["x86_64"]

@@ -1,5 +1,5 @@
 locals {
-  buckets                 = ["ingest", "uploads", "preservation", "preservation-checks", "pyramids", "streaming" ]
+  buckets                 = ["ingest", "uploads", "preservation", "preservation-checks", "pyramids", "streaming", "derivatives"]
   notification_buckets    = ["ingest", "uploads"]
   public_buckets          = ["pyramids", "streaming"]
 }

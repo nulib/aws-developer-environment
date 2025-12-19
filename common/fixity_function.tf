@@ -1,12 +1,13 @@
 resource "aws_cloudformation_stack" "serverless_fixity_solution" {
   name            = "${local.project}-fixity"
-  template_url    = "https://s3.amazonaws.com/solutions-reference/serverless-fixity-for-digital-preservation-compliance/latest/serverless-fixity-for-digital-preservation-compliance.template"
+  template_url    = "https://awsi-megs-guidances-us-east-1.s3.amazonaws.com/serverless-fixity-for-digital-preservation-compliance/latest/serverless-fixity-for-digital-preservation-compliance.template"
   parameters      = {
     # The fixity stack won't deploy without an email address, so we'll give it a black hole address 
     # that we'll unsubscribe manually as soon as the stack finishes deploying
     Email = "fixity-blackhole@mailinator.com"
+    VendorAccountRoleList = ""
   }
-  capabilities    = ["CAPABILITY_IAM"]
+  capabilities    = ["CAPABILITY_IAM", "CAPABILITY_NAMED_IAM", "CAPABILITY_AUTO_EXPAND"]
 }
 
 data "aws_sfn_state_machine" "fixity_state_machine" {

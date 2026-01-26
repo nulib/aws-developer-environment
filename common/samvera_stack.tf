@@ -28,7 +28,7 @@ resource "aws_security_group_rule" "samvera_stack_service_ingress" {
   from_port           = each.key
   to_port             = each.key
   protocol            = "tcp"
-  cidr_blocks         = ["0.0.0.0/0"]
+  cidr_blocks         = [module.vpc.vpc_cidr_block]
 }
 
 resource "aws_s3_bucket" "fedora_binaries" {

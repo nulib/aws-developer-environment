@@ -1,5 +1,6 @@
 locals {
   actions = [
+    "attach-transcription",
     "ingest-file-set",
     "extract-mime-type",
     "initialize-dispatch",

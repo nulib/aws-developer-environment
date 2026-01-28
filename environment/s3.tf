@@ -6,8 +6,15 @@ locals {
 
 resource "aws_s3_bucket" "meadow_buckets" {
   for_each = toset(local.buckets)
-  bucket   = "${local.prefix}-${each.key}"
-  
+  bucket   = "${local.prefix}-${each.key}"  
+}
+
+resource "aws_s3_bucket_abac" "meadow_buckets" {
+  for_each = toset(local.buckets)
+  bucket = aws_s3_bucket.meadow_buckets[each.key].bucket
+  abac_status {
+    status = "Enabled"
+  }
 }
 
 resource "aws_s3_bucket_public_access_block" "meadow_buckets" {

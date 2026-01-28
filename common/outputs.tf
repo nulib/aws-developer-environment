@@ -42,7 +42,7 @@ output "search_snapshot_configuration" {
       type     = "s3"
       settings = {
         bucket    = aws_s3_bucket.search_snapshot_bucket.id
-        region    = data.aws_region.current.name
+        region    = data.aws_region.current.region
         role_arn  = aws_iam_role.search_snapshot_bucket_access.arn
       }
     })

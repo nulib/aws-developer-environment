@@ -6,7 +6,7 @@ terraform {
   required_providers {
     aws = {
       source  = "hashicorp/aws"
-      version = "~> 5.1"
+      version = "~> 6.0"
     }
   }
 }
@@ -23,7 +23,7 @@ data "aws_region" "current" {}
 locals {
   project       = "dev-environment"
   iam_path      = "/${local.project}/"
-  regional_id   = join(":", [data.aws_region.current.name, data.aws_caller_identity.current_user.id])
+  regional_id   = join(":", [data.aws_region.current.region, data.aws_caller_identity.current_user.id])
   tags    = {
     Project = local.project
     Owner   = "shared"  

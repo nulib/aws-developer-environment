@@ -1,6 +1,6 @@
 locals {
   opensearch_domain = "${local.project}-shared-index"
-  search_index_arn  = "arn:aws:es:${data.aws_region.current.name}:${data.aws_caller_identity.current_user.account_id}:domain/${local.opensearch_domain}/*"
+  search_index_arn  = "arn:aws:es:${data.aws_region.current.region}:${data.aws_caller_identity.current_user.account_id}:domain/${local.opensearch_domain}/*"
 }
 
 data "aws_iam_policy_document" "search_index_http_access" {

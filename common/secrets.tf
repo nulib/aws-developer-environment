@@ -35,7 +35,7 @@ locals {
   
     inference = {
       name        = var.embedding_model_name
-      endpoint    = "https://bedrock-runtime.${data.aws_region.current.name}.amazonaws.com/model/${var.embedding_model_name}/invoke"
+      endpoint    = "https://bedrock-runtime.${data.aws_region.current.region}.amazonaws.com/model/${var.embedding_model_name}/invoke"
       dimensions  = var.embedding_dimensions
     }
 

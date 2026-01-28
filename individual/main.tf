@@ -6,7 +6,7 @@ terraform {
   required_providers {
     aws = {
       source  = "hashicorp/aws"
-      version = "~> 4.8"
+      version = "~> 6.0"
     }
   }
 }
@@ -29,7 +29,7 @@ locals {
   owner         = terraform.workspace
   prefix        = local.owner
   iam_path      = join("/", ["", local.project, local.owner, ""])
-  regional_id   = join(":", [data.aws_region.current.name, data.aws_caller_identity.current_user.id])
+  regional_id   = join(":", [data.aws_region.current.region, data.aws_caller_identity.current_user.id])
 
   common_config = jsondecode(data.aws_secretsmanager_secret_version.common_config.secret_string)
 

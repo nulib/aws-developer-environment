@@ -13,7 +13,7 @@ function viewerRequest(event) {
     ? `s3://${tiffBucket}/posters/${pairtree}-poster.tif`
     : `s3://${tiffBucket}/${pairtree}-pyramid.tif`;
   request.headers["x-preflight-location"] = { value: s3Location };
-  request.uri = path.replace(`/${prefix}`, "");
+  // request.uri = path.replace(`/${prefix}`, "");
   return request;
 }
 

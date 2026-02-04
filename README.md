@@ -147,10 +147,10 @@ cat ~/.zshrc.pre-oh-my-zsh >> ~/.zshrc
   - `https-proxy start 3002 3000` - start proxying `https://YOUR_HOSTNAME:3002/` to `http://localhost:3000/`
   - `https-proxy stop 3002` - stop the proxy on port 3002
 - `sg` - open and close ports, e.g.:
-  - `sg open <IPADDR | IPRANGE | all> PORT` - allow access on port `PORT` from a single source IP address, a source IP range (expressed in CIDR notation), or the entire Internet
-  - `sg close <IPADDR | IPRANGE | all> PORT` - close a previously opened port. The address or range must exactly match what was specified on `open`.
-  - `sg close all` - close all ports on all addresses
-  - `sg show` - show a list of currently open ports and source addresses
+  - `sgport open <IPADDR | IPRANGE | all> PORT` - allow access on port `PORT` from a single source IP address, a source IP range (expressed in CIDR notation), or the entire Internet
+  - `sgport close <IPADDR | IPRANGE | all> PORT` - close a previously opened port. The address or range must exactly match what was specified on `open`.
+  - `sgport close all` - close all ports on all addresses
+  - `sgport show` - show a list of currently open ports and source addresses
   - When you run `mix phx.server`, Meadow runs on port 3001, so you'll need to open that port if you want to access your Meadow dev instance from a browser
 
 #### Automatic Shutdowns

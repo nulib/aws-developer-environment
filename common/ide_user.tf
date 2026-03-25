@@ -56,6 +56,12 @@ data "aws_iam_policy_document" "ide_session_policy" {
     ]
     resources = ["*"]
   }
+
+  statement {
+    effect   = "Allow"
+    actions   = ["lambda:InvokeFunction"]
+    resources = ["*"]
+  }
 }
 
 resource "aws_iam_user" "ide_session_user" {

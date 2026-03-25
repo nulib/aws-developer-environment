@@ -161,6 +161,18 @@ data "aws_iam_policy_document" "developer_access" {
   }
 
   statement {
+    sid        = "DeveloperLambdaInvokeByTag"
+    effect     = "Allow"
+    actions    = ["lambda:InvokeFunction"]
+    resources  = ["*"]
+    condition {
+      test        = "StringEquals"
+      variable    = "aws:ResourceTag/aws:cloudformation:stack-name"
+      values      = ["meadow-dev-pipeline"]
+    }
+  }
+
+  statement {
     sid       = "DeveloperSQSAccess"
     effect    = "Allow"
     actions   = ["sqs:*"]
@@ -228,7 +240,7 @@ data "aws_iam_policy_document" "developer_access" {
     resources = [
       local.common_config.elasticsearch_snapshot_role,
       local.common_config.transcode_role,
-      data.aws_iam_role.pipeline_lambda_role.arn,
+      # data.aws_iam_role.pipeline_lambda_role.arn,
       data.aws_iam_role.mediaconvert_default_role.arn
     ]
   }

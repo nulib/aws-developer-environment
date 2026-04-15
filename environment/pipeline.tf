@@ -14,7 +14,8 @@ locals {
     "create-transcode-job",
     "generate-poster-image",
     "transcode-complete",
-    "file-set-complete"
+    "file-set-complete",
+    "generate-ai-metadata"
   ]
 }
 

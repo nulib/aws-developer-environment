@@ -49,18 +49,18 @@ data "aws_iam_policy_document" "ide_session_policy" {
   }
 
   statement {
-    effect = "Allow"
-    actions = [
-      "mediaconvert:CreateJob",
-      "mediaconvert:DescribeEndpoints"
-    ]
-    resources = ["*"]
+    effect    = "Allow"
+    actions   = ["ssm:GetSession"]
+    resources = ["arn:aws:ssm:us-east-1:${data.aws_caller_identity.current_user.id}:session/*"]
   }
 
   statement {
-    effect   = "Allow"
-    actions   = ["lambda:InvokeFunction"]
-    resources = ["*"]
+    effect    = "Allow"
+    actions   = ["ssm:SendCommand"]
+    resources = [
+      "arn:aws:ec2:us-east-1:${data.aws_caller_identity.current.account_id}:instance/*",
+      "arn:aws:ssm:*::document/AWS-RunShellScript"
+    ]
   }
 }
 

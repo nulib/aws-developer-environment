@@ -1,19 +1,28 @@
 #!/bin/bash
-# Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
-# SPDX-License-Identifier: MIT-0
 
-# Configuration
-# Change these values to reflect your environment
-# AWS_PROFILE=
-# AWS_REGION=
+LOGFILE="$HOME/ssm-proxy.log"
+
+exec 2> >(tee -a "$LOGFILE" >&2)
+
 MAX_ITERATION=5
 SLEEP_DURATION=5
+
+echo "Starting SSM Proxy with params $@" >&2
 
 # Arguments passed from SSH client
 HOST=$1
 PORT=$2
+export SSM_CLIENT_IP=$(curl -s https://checkip.amazonaws.com/)
 
-export PATH=$HOME/.asdf/shims:$HOME/.asdf/bin:/usr/local/bin:$PATH
+ASDF_DATA_DIR="${ASDF_DATA_DIR:-$HOME/.asdf}"
+if [ -e $HOME/.local/bin/mise ]; then
+  eval "$($HOME/.local/bin/mise activate bash)"
+elif [ -e ${ASDF_DATA_DIR}/shims ]; then
+  export PATH="${ASDF_DATA_DIR}/shims:$PATH"
+fi
+if ! grep -q "/usr/local/bin" <<< "$PATH"; then
+  export PATH="$PATH:/usr/local/bin"
+fi
 
 if [[ -x $AWS_COMMAND ]]; then
   true # noop
@@ -40,9 +49,28 @@ fi
 
 STATUS=$($AWS_COMMAND --profile $AWS_PROFILE ssm describe-instance-information --filters Key=InstanceIds,Values=${HOST} --output text --query 'InstanceInformationList[0].PingStatus' --profile ${AWS_PROFILE} --region ${AWS_REGION})
 
+login() {
+  LOCAL_IP=$(curl -s https://checkip.amazonaws.com)
+
+  $AWS_COMMAND ssm send-command \
+    --instance-ids $HOST \
+    --document-name "AWS-RunShellScript" \
+    --parameters "commands=[\"echo ${LOCAL_IP} > /run/ssh-client-ip\"]" \
+    --profile ${AWS_PROFILE} \
+    --region ${AWS_REGION} \
+    --output text > /dev/null
+
+  $AWS_COMMAND ssm start-session \
+    --target $HOST \
+    --document-name AWS-StartSSHSession \
+    --parameters portNumber=${PORT} \
+    --profile ${AWS_PROFILE} \
+    --region ${AWS_REGION}
+}
+
 # If the instance is online, start the session
 if [ $STATUS == 'Online' ]; then
-    $AWS_COMMAND ssm start-session --target $HOST --document-name AWS-StartSSHSession --parameters portNumber=${PORT} --profile ${AWS_PROFILE} --region ${AWS_REGION}
+    login
 else
     # Instance is offline - start the instance
     $AWS_COMMAND ec2 start-instances --instance-ids $HOST --profile ${AWS_PROFILE} --region ${AWS_REGION}
@@ -62,5 +90,5 @@ else
         fi
     done
     # Instance is online now - start the session
-    $AWS_COMMAND ssm start-session --target $HOST --document-name AWS-StartSSHSession --parameters portNumber=${PORT} --profile ${AWS_PROFILE} --region ${AWS_REGION}
+    login
 fi

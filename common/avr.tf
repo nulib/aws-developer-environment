@@ -69,6 +69,30 @@ resource "aws_s3_bucket_cors_configuration" "avr_derivatives" {
 
 # MediaConvert
 
+resource "aws_iam_policy" "transcode_policy" {
+  name = "${local.project}-transcode-policy"
+
+  policy = jsonencode({
+    Version = "2012-10-17"
+    Statement = [
+      {
+        Effect   = "Allow"
+        Action   = ["s3:Get*", "s3:List*"]
+        Resource = [
+          for env in local.avr_environments: "${aws_s3_bucket.avr_masterfiles[env].arn}/*"
+        ]
+      },
+      {
+        Effect   = "Allow"
+        Action   = ["s3:Put*"]
+        Resource = [
+          for env in local.avr_environments: "${aws_s3_bucket.avr_derivatives[env].arn}/*"
+        ]
+      }
+    ]
+  })
+}
+
 resource "aws_iam_role" "transcode_role" {
   name = "${local.project}-transcode-role"
 
@@ -85,30 +109,11 @@ resource "aws_iam_role" "transcode_role" {
       },
     ]
   })
+}
 
-  inline_policy {
-    name = "${local.project}-transcode-policy"
-
-    policy = jsonencode({
-      Version = "2012-10-17"
-      Statement = [
-        {
-          Effect   = "Allow"
-          Action   = ["s3:Get*", "s3:List*"]
-          Resource = [
-            for env in local.avr_environments: "${aws_s3_bucket.avr_masterfiles[env].arn}/*"
-          ]
-        },
-        {
-          Effect   = "Allow"
-          Action   = ["s3:Put*"]
-          Resource = [
-            for env in local.avr_environments: "${aws_s3_bucket.avr_derivatives[env].arn}/*"
-          ]
-        }
-      ]
-    })
-  }
+resource "aws_iam_role_policy_attachment" "transcode_policy_attachment" {
+  role       = aws_iam_role.transcode_role.name
+  policy_arn = aws_iam_policy.transcode_policy.arn
 }
 
 data "aws_iam_policy_document" "pass_transcode_role" {

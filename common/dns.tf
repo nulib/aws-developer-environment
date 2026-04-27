@@ -9,8 +9,9 @@ resource "aws_service_discovery_private_dns_namespace" "internal" {
 }
 
 resource "aws_acm_certificate" "wildcard_cert" {
-  domain_name         = "*.${aws_route53_zone.hosted_zone.name}"
-  validation_method   = "DNS"
+  domain_name                 = "*.${aws_route53_zone.hosted_zone.name}"
+  subject_alternative_names   = [aws_route53_zone.hosted_zone.name]
+  validation_method           = "DNS"
   lifecycle {
     create_before_destroy = true
   }

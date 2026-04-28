@@ -2,6 +2,45 @@ data "aws_iam_role" "ssm_service_role" {
   name = "AWSServiceRoleForAmazonSSM"
 }
 
+resource "aws_iam_policy" "ide_backup" {
+  name        = "${local.project}-ide-backup"
+  path        = local.iam_path
+  description = "Policy to allow SSM maintenance window tasks to run backups on developer environment instances"
+
+  policy = jsonencode({
+    Version   = "2012-10-17"
+    Statement = [
+      {
+        Sid       = "0"
+        Effect    = "Allow"
+        Action    = "ssm:SendCommand"
+        Resource  = ["arn:aws:ssm:*:*:document/*"]
+      },
+      {
+        Sid       = "1"
+        Effect    = "Allow"
+        Action    = ["ec2:DescribeInstanceStatus"]
+        Resource  = ["*"]
+      },
+      {
+        Sid       = "2"
+        Effect    = "Allow"
+        Action    = [
+          "ec2:StartInstances",
+          "ec2:StopInstances",
+          "ssm:SendCommand"
+        ]
+        Resource  = ["arn:aws:ec2:${local.regional_id}:instance/*"]
+        Condition =  {
+          StringEquals = {
+            "aws:ResourceTag/Project" = local.project
+          }
+        }
+      }
+    ]
+  })
+}
+
 resource "aws_iam_role" "ide_backup" {
   name = "${local.project}-ide-backup"
   path = local.iam_path
@@ -17,42 +56,11 @@ resource "aws_iam_role" "ide_backup" {
       }
     }]
   })
+}
 
-  inline_policy {
-    name   = "allow-backup-tasks"
-    policy = jsonencode({
-      Version   = "2012-10-17"
-      Statement = [
-        {
-          Sid       = "0"
-          Effect    = "Allow"
-          Action    = "ssm:SendCommand"
-          Resource  = ["arn:aws:ssm:*:*:document/*"]
-        },
-        {
-          Sid       = "1"
-          Effect    = "Allow"
-          Action    = ["ec2:DescribeInstanceStatus"]
-          Resource  = ["*"]
-        },
-        {
-          Sid       = "2"
-          Effect    = "Allow"
-          Action    = [
-            "ec2:StartInstances",
-            "ec2:StopInstances",
-            "ssm:SendCommand"
-          ]
-          Resource  = ["arn:aws:ec2:${local.regional_id}:instance/*"]
-          Condition =  {
-            StringEquals = {
-              "aws:ResourceTag/Project" = local.project
-            }
-          }
-        }
-      ]
-    })
-  }
+resource "aws_iam_role_policy_attachment" "ide_backup" {
+  role       = aws_iam_role.ide_backup.name
+  policy_arn = aws_iam_policy.ide_backup.arn
 }
 
 resource "aws_ssm_maintenance_window" "ide_maintenance" {

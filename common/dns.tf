@@ -66,7 +66,7 @@ resource "aws_iam_policy" "allow_dns_update" {
 
 module "ide_dns_updater" {
   source    = "terraform-aws-modules/lambda/aws"
-  version   = "~> 3.1"
+  version   = "~> 8.8"
   
   function_name   = "${local.project}-ide-dns-updater"
   description     = "Updates DNS entries for developer IDE instances on startup"

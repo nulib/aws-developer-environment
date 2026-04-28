@@ -1,27 +1,56 @@
-const AWS = require('aws-sdk');
+const { EC2Client, DescribeTagsCommand, DescribeInstancesCommand } = require("@aws-sdk/client-ec2");
+const { Route53Client, ChangeResourceRecordSetsCommand, ListResourceRecordSetsCommand } = require("@aws-sdk/client-route-53");
 
 const hostedZoneId = process.env.hosted_zone_id;
 const hostedZoneName = process.env.hosted_zone_name;
 
 const applyChanges = async (changes) => {
-  const route53 = new AWS.Route53();
+  const route53 = new Route53Client();
 
   if (changes.length == 0) return {};
 
-  return await route53.changeResourceRecordSets({
+  return await route53.send(new ChangeResourceRecordSetsCommand({
     HostedZoneId: hostedZoneId,
     ChangeBatch: {
       Changes: changes
     }
-  }).promise();
+  }));
+
+};
+
+const getInstanceTags = async (instanceId) => {
+  const ec2 = new EC2Client();
+
+  const { Tags } = await ec2.send(new DescribeTagsCommand({
+    Filters: [
+      {
+        Name: "resource-id",
+        Values: [instanceId]
+      }
+    ]
+  }));
+
+  return Tags;
 };
 
 const upsertRoute53Record = async (instanceId, hostname) => {
-  const ec2 = new AWS.EC2();
+  const ec2 = new EC2Client();
+  let ipAddress;
 
-  console.log("Getting public IP address for instance ", instanceId);
-  const response = await ec2.describeInstances({ InstanceIds: [instanceId] }).promise();
-  const ipAddress = response.Reservations[0].Instances[0].PublicIpAddress;
+  const tags = await getInstanceTags(instanceId);
+  for (const tag of tags) {
+    if (tag.Key == "tailnet-ip") {
+      console.log("Found tailnet IP address for instance ", instanceId);
+      ipAddress = tag.Value;
+      break;
+    }
+  }
+
+  if (!ipAddress) {
+    console.log("Getting public IP address for instance ", instanceId);
+    const response = await ec2.send(new DescribeInstancesCommand({ InstanceIds: [instanceId] }));
+    ipAddress = response.Reservations[0].Instances[0].PublicIpAddress;
+  }
 
   console.log(`Updating DNS record for ${hostname} to ${ipAddress}`);
   return await applyChanges([{
@@ -36,14 +65,15 @@ const upsertRoute53Record = async (instanceId, hostname) => {
 };
 
 const deleteRoute53Record = async (hostname) => {
-  const route53 = new AWS.Route53();
+  const route53 = new Route53Client();
 
   console.log(`Locating DNS records for ${hostname}`);
-  const { ResourceRecordSets } = await route53.listResourceRecordSets({ 
+  
+  const { ResourceRecordSets } = await route53.send(new ListResourceRecordSetsCommand({
     HostedZoneId: hostedZoneId, 
     StartRecordName: hostname, 
     StartRecordType: "A"
-  }).promise();
+  }));
 
   const re = new RegExp(`^${hostname.replace(/\./g, "\\.")}\.*$`);
   const changes = ResourceRecordSets.reduce((result, ResourceRecordSet) => {
@@ -58,16 +88,16 @@ const deleteRoute53Record = async (hostname) => {
 }
 
 exports.handler = async (event, _context) => {
-  const ec2 = new AWS.EC2();
+  const ec2 = new EC2Client();
 
   const instanceId = event.detail["instance-id"];
   console.log("Getting tags for instance ", instanceId);
-  const { Tags } = await ec2.describeTags({
+  const { Tags } = await ec2.send(new DescribeTagsCommand({
     Filters: [{
       Name: "resource-id",
       Values: [instanceId]
     }]
-  }).promise();
+  }));
 
   if (!Tags.find(({ Key, Value }) => {
       return Key == "Project" && Value == "dev-environment"

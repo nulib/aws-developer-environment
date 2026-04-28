@@ -8,7 +8,8 @@
   },
   "author": "MBK",
   "license": "Apache-2.0",
-  "devDependencies": {
-    "aws-sdk": "^2.1115.0"
+  "dependencies": {
+    "@aws-sdk/client-ec2": "^3.1038.0",
+    "@aws-sdk/client-route-53": "^3.1038.0"
   }
 }

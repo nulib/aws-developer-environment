@@ -26,8 +26,8 @@
    bash <(curl -s https://raw.githubusercontent.com/nulib/aws-developer-environment/main/individual/support/dev_environment_profile.sh)
    ```
    (You may be prompted to log into AWS by the SSO login handler.)
-4. Copy the [SSH Proxy Script](individual/support/nul-ssm-proxy.sh) to the `~/.ssh` directory of the user who will be using the new environment.
-5. `chmod 0755 ~/.ssh/nul-ssm-proxy.sh`
+4. Copy the [SSH Proxy Script](individual/support/nul-ts-proxy.sh) to the `~/.ssh` directory of the user who will be using the new environment.
+5. `chmod 0755 ~/.ssh/nul-ts-proxy.sh`
 6. Add the following stanza to the user's `~/.ssh/config`:
    ```
    Match host *.dev.rdc.library.northwestern.edu
@@ -37,7 +37,11 @@
      UseKeychain yes
      StrictHostKeyChecking no
      UserKnownHostsFile /dev/null
-     ProxyCommand sh -c "~/.ssh/nul-ssm-proxy.sh %h %p"
+     ControlMaster no
+     ServerAliveInterval 60
+     ServerAliveCountMax 240
+     TCPKeepAlive yes
+     ProxyCommand sh -c "~/.ssh/nul-ts-proxy.sh %h %p"
    ```
 7. In order to work seamlessly with SSH and agent forwarding, you'll also need to add the
    private key to the native SSH Agent:
@@ -146,12 +150,6 @@ cat ~/.zshrc.pre-oh-my-zsh >> ~/.zshrc
 - `https-proxy` - Run an SSL proxy to a local HTTP service
   - `https-proxy start 3002 3000` - start proxying `https://YOUR_HOSTNAME:3002/` to `http://localhost:3000/`
   - `https-proxy stop 3002` - stop the proxy on port 3002
-- `sg` - open and close ports, e.g.:
-  - `sgport open <IPADDR | IPRANGE | all> PORT` - allow access on port `PORT` from a single source IP address, a source IP range (expressed in CIDR notation), or the entire Internet
-  - `sgport close <IPADDR | IPRANGE | all> PORT` - close a previously opened port. The address or range must exactly match what was specified on `open`.
-  - `sgport close all` - close all ports on all addresses
-  - `sgport show` - show a list of currently open ports and source addresses
-  - When you run `mix phx.server`, Meadow runs on port 3001, so you'll need to open that port if you want to access your Meadow dev instance from a browser
 
 #### Automatic Shutdowns
 
@@ -235,6 +233,9 @@ $ terraform init
 $ terraform workspace new USERID
 $ terraform apply
 ```
+
+See the [Tailnet Documentation](tailnet/SETUP.md#part-5-ec2-enrollment) for instructions on adding the
+new EC2 instance to the Tailnet.
 
 #### Environment Updates
 

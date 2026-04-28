@@ -1,18 +1,13 @@
 #!/bin/bash
 
-LOGFILE="$HOME/ssm-proxy.log"
-
-exec 2> >(tee -a "$LOGFILE" >&2)
-
 MAX_ITERATION=5
 SLEEP_DURATION=5
 
-echo "Starting SSM Proxy with params $@" >&2
+echo "Starting Tailscale Proxy with params $@" >&2
 
 # Arguments passed from SSH client
 HOST=$1
 PORT=$2
-export SSM_CLIENT_IP=$(curl -s https://checkip.amazonaws.com/)
 
 ASDF_DATA_DIR="${ASDF_DATA_DIR:-$HOME/.asdf}"
 if [ -e $HOME/.local/bin/mise ]; then
@@ -50,12 +45,7 @@ fi
 STATUS=$($AWS_COMMAND --profile $AWS_PROFILE ssm describe-instance-information --filters Key=InstanceIds,Values=${HOST} --output text --query 'InstanceInformationList[0].PingStatus' --profile ${AWS_PROFILE} --region ${AWS_REGION})
 
 login() {
-  $AWS_COMMAND ssm start-session \
-    --target $HOST \
-    --document-name AWS-StartSSHSession \
-    --parameters portNumber=${PORT} \
-    --profile ${AWS_PROFILE} \
-    --region ${AWS_REGION}
+  exec nc ${OWNER}-dev $PORT
 }
 
 # If the instance is online, start the session

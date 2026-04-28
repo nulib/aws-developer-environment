@@ -98,6 +98,15 @@ resource "aws_security_group_rule" "ide_instance_security_group_egress" {
   protocol            = "all"
 }
 
+resource "aws_security_group_rule" "wireguard_ingress" {
+  security_group_id   = aws_security_group.ide_instance_security_group.id
+  type                = "ingress"
+  from_port           = 41641
+  to_port             = 41641
+  protocol            = "udp"
+  cidr_blocks         = ["0.0.0.0/0"]
+}
+
 data "aws_iam_role" "mediaconvert_default_role" {
   name = "MediaConvert_Default_Role"
 }

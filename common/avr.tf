@@ -1,5 +1,5 @@
 locals {
-  avr_environments = ["dev", "test"]
+  avr_environments = ["dev"]
 }
 
 resource "aws_s3_bucket" "avr_masterfiles" {

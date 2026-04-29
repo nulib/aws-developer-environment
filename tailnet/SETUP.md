@@ -112,8 +112,8 @@ Then create the Tailscale OAuth client that Terraform will use to manage the tai
    tailscale status
    ```
 8. Go to https://login.tailscale.com/admin/machines
-9. Click the context menu to the right of the new instance, and select **Edit machine name...**
-10. Uncheck **Auto-generate from OS hostname** and enter `USERID-dev` as the new hostname
+9. Click the context menu to the right of the new instance, and select **Edit machine name...**.
+10. Uncheck **Auto-generate from OS hostname** and change the hostname to the short username of the instance's owner.
 11. Make sure the new instance has the **Expiry disabled** label. If not, click the context menu and select **Disable key expiry**.
 
 ---

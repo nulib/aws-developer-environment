@@ -45,7 +45,7 @@ fi
 STATUS=$($AWS_COMMAND --profile $AWS_PROFILE ssm describe-instance-information --filters Key=InstanceIds,Values=${HOST} --output text --query 'InstanceInformationList[0].PingStatus' --profile ${AWS_PROFILE} --region ${AWS_REGION})
 
 login() {
-  exec nc ${OWNER}-dev $PORT
+  exec nc $OWNER $PORT
 }
 
 # If the instance is online, start the session

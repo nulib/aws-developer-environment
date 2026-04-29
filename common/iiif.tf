@@ -24,7 +24,6 @@ resource "aws_serverlessapplicationrepository_cloudformation_stack" "serverless_
     Preflight               = true
     ForceHost               = local.iiif_server_hostname
     IiifLambdaMemory        = 2048
-    PyramidLimit            = 0
     SourceBucket            = "${local.project}-shared-pyramids"
   }
 }
@@ -131,7 +130,8 @@ resource "aws_cloudfront_distribution" "iiif_server" {
 }
 
 resource "aws_route53_record" "serverless_iiif" {
-  zone_id = aws_route53_zone.hosted_zone.zone_id
+  for_each = toset([aws_route53_zone.hosted_zone.zone_id, aws_route53_zone.private_hosted_zone.zone_id])
+  zone_id = each.key
   name    = local.iiif_server_hostname
   type    = "A"
 

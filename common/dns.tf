@@ -1,5 +1,16 @@
 resource "aws_route53_zone" "hosted_zone" {
   name = var.hosted_zone_name
+  tags = {
+    visibility    = "public"
+  }
+}
+
+resource "aws_route53_zone" "private_hosted_zone" {
+  name = var.hosted_zone_name
+  tags = {
+    Project       = local.project
+    visibility    = "tailnet"
+  }
 }
 
 resource "aws_service_discovery_private_dns_namespace" "internal" {
@@ -45,7 +56,7 @@ data "aws_iam_policy_document" "dns_update" {
       "route53:ChangeResourceRecordSets", 
       "route53:ListResourceRecordSets"
     ]
-    resources = [aws_route53_zone.hosted_zone.arn]
+    resources = [aws_route53_zone.hosted_zone.arn, aws_route53_zone.private_hosted_zone.arn]
   }
 
   statement {
@@ -77,7 +88,8 @@ module "ide_dns_updater" {
   timeout         = 10
 
   environment_variables = {
-    "hosted_zone_id"   = aws_route53_zone.hosted_zone.id
+    "public_zone_id"   = aws_route53_zone.hosted_zone.id
+    "private_zone_id"  = aws_route53_zone.private_hosted_zone.id
     "hosted_zone_name" = aws_route53_zone.hosted_zone.name
   }
 
@@ -119,4 +131,13 @@ resource "aws_lambda_permission" "ide_dns_update" {
   function_name   = module.ide_dns_updater.lambda_function_name
   principal       = "events.amazonaws.com"
   source_arn      = aws_cloudwatch_event_rule.ide_dns_update.arn
+}
+
+resource "aws_route53_record" "local_dev_host" {
+  for_each = toset([aws_route53_zone.hosted_zone.zone_id, aws_route53_zone.private_hosted_zone.zone_id])
+  zone_id = each.key
+  name    = "local.${aws_route53_zone.hosted_zone.name}"
+  type    = "A"
+  records = ["127.0.0.1"]
+  ttl     = 60
 }

@@ -27,6 +27,8 @@ elif [[ -x /usr/local/bin/aws ]]; then
   AWS_COMMAND=/usr/local/bin/aws
 elif [[ -x /usr/bin/aws ]]; then
   AWS_COMMAND=/usr/bin/aws
+elif [[ -x /opt/homebrew/bin/aws ]]; then
+  AWS_COMMAND=/opt/homebrew/bin/aws
 fi
 
 if [[ $HOST =~ ^([^.]+)\.dev\.rdc\.library\.northwestern\.edu$ ]]; then

@@ -102,7 +102,7 @@ module "ide_dns_updater" {
 }
 
 resource "aws_iam_role_policy_attachment" "ide_dns_updater" {
-  role          = module.ide_dns_updater.lambda_function_name
+  role          = module.ide_dns_updater.lambda_role_arn
   policy_arn    = aws_iam_policy.allow_dns_update.arn
 }
 

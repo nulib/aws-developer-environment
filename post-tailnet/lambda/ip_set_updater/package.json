@@ -1,0 +1,12 @@
+{
+  "name": "ip_set",
+  "version": "0.1.0",
+  "main": "index.js",
+  "keywords": [],
+  "author": "",
+  "license": "MIT",
+  "description": "Lambda function to update IP sets in AWS WAF",
+  "dependencies": {
+    "@aws-sdk/client-wafv2": "^3.1045.0"
+  }
+}

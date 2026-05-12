@@ -130,8 +130,11 @@ resource "aws_cloudfront_distribution" "iiif_server" {
 }
 
 resource "aws_route53_record" "serverless_iiif" {
-  for_each = toset([aws_route53_zone.hosted_zone.zone_id, aws_route53_zone.private_hosted_zone.zone_id])
-  zone_id = each.key
+  for_each = {
+    "public"  = aws_route53_zone.hosted_zone
+    "private" = aws_route53_zone.private_hosted_zone
+  }
+  zone_id = each.value.id
   name    = local.iiif_server_hostname
   type    = "A"
 

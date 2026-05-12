@@ -46,6 +46,17 @@ data "aws_caller_identity" "current" {}
 data "aws_route53_zone" "domain" {
   name         = "${var.domain}."
   private_zone = false
+  tags = {
+    visibility = "public"
+  }
+}
+
+data "aws_route53_zone" "private_domain" {
+  name         = "${var.domain}."
+  private_zone = false
+  tags = {
+    visibility = "tailnet"
+  }
 }
 
 data "aws_acm_certificate" "existing_wildcard" {
@@ -173,7 +184,11 @@ resource "aws_cognito_user_pool_domain" "tailnet" {
 # Alias record pointing auth.dev.rdc.library.northwestern.edu at the
 # CloudFront distribution Cognito creates for the custom hosted UI domain
 resource "aws_route53_record" "cognito_auth" {
-  zone_id = data.aws_route53_zone.domain.id
+  for_each = {
+    "public"  = data.aws_route53_zone.domain
+    "private" = data.aws_route53_zone.private_domain
+  }
+  zone_id = each.value.id
   name    = local.cognito_auth_domain
   type    = "A"
 

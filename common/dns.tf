@@ -134,9 +134,12 @@ resource "aws_lambda_permission" "ide_dns_update" {
 }
 
 resource "aws_route53_record" "local_dev_host" {
-  for_each = toset([aws_route53_zone.hosted_zone.zone_id, aws_route53_zone.private_hosted_zone.zone_id])
-  zone_id = each.key
-  name    = "local.${aws_route53_zone.hosted_zone.name}"
+  for_each = {
+    "public"  = aws_route53_zone.hosted_zone
+    "private" = aws_route53_zone.private_hosted_zone
+  }
+  zone_id = each.value.id
+  name    = "local.${each.value.name}"
   type    = "A"
   records = ["127.0.0.1"]
   ttl     = 60

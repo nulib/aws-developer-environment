@@ -30,6 +30,7 @@ resource "aws_instance" "ide_instance" {
   security_groups               = [aws_security_group.ide_instance_security_group.id]
   associate_public_ip_address   = true
 
+
   # Root volume
   root_block_device {
     encrypted               = false
@@ -56,6 +57,10 @@ resource "aws_instance" "ide_instance" {
       Name = "${local.owner}-dev-environment-ide"
     }
   )
+
+  metadata_options {
+    instance_metadata_tags = "enabled"
+  }
 
   lifecycle {
     ignore_changes = all
